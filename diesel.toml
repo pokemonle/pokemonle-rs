@@ -1,0 +1,6 @@
+# For documentation on how to configure this file,
+# see https://diesel.rs/guides/configuring-diesel-cli
+
+[print_schema]
+file = "pokemonle-lib/src/database/schema.rs"
+custom_type_derives = ["diesel::sql_types::*", "crate::model::*"]
