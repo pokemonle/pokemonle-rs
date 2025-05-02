@@ -1,6 +1,7 @@
 use crate::error::Error;
 use aide::{
     axum::{routing::get_with, ApiRouter, IntoApiResponse},
+    transform::TransformOperation,
     OperationOutput,
 };
 use axum::{
@@ -27,6 +28,17 @@ where
     <T as OperationOutput>::Inner: Serialize + From<T>,
     H: DatabaseHandler<Resource = T> + Sync + 'static,
     F: Fn(AppState) -> H + Clone + Copy + Send + Sync + 'static,
+{
+    api_routers_with_transform(handler_fn, |o| o)
+}
+
+pub fn api_routers_with_transform<T, H, F, O>(handler_fn: F, transform: O) -> ApiRouter<AppState>
+where
+    T: StructName + OperationOutput + Serialize + JsonSchema + Clone + Send + Sync + 'static,
+    <T as OperationOutput>::Inner: Serialize + From<T>,
+    H: DatabaseHandler<Resource = T> + Sync + 'static,
+    F: Fn(AppState) -> H + Clone + Copy + Send + Sync + 'static,
+    O: FnOnce(TransformOperation) -> TransformOperation + Clone + Copy,
 {
     use super::response::{get_item_by_id_docs, list_items_docs};
 
@@ -74,14 +86,15 @@ where
             "/",
             get_with(
                 move |state| list::<T, H>(state, handler_fn.clone()),
-                list_items_docs::<T>,
+                move |op| transform(list_items_docs::<T>(op)),
             ),
         )
         .api_route(
             "/{id}",
             get_with(
                 move |state, id| get::<T, H>(state, id, handler_fn.clone()),
-                get_item_by_id_docs::<T>,
+                // get_item_by_id_docs with transform
+                move |op| transform(get_item_by_id_docs::<T>(op)),
             ),
         )
 }

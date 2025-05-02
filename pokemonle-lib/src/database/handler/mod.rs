@@ -1,5 +1,8 @@
 mod ability;
+mod generation;
+mod item;
 mod language;
+mod r#type;
 mod version;
 mod version_group;
 
@@ -105,5 +108,17 @@ impl DatabaseClientPooled {
 
     pub fn ability_handler(&self) -> ability::AbilityHandler {
         ability::AbilityHandler::new(self.connection.clone())
+    }
+
+    pub fn generation_handler(&self) -> generation::GenerationHandler {
+        generation::GenerationHandler::new(self.connection.clone())
+    }
+
+    pub fn item_handler(&self) -> item::ItemHandler {
+        item::ItemHandler::new(self.connection.clone())
+    }
+
+    pub fn type_handler(&self) -> r#type::TypeHandler {
+        r#type::TypeHandler::new(self.connection.clone())
     }
 }
