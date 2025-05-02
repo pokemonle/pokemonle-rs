@@ -4,7 +4,7 @@ use aide::{
     OperationIo,
     OperationOutput, // OperationOutput,
 };
-use axum::Json;
+use axum::{extract::Path, Json};
 use pokemonle_trait::StructName;
 use schemars::JsonSchema;
 // use axum::{extract::rejection::JsonRejection, Json};
@@ -40,12 +40,13 @@ where
     T: StructName + OperationOutput + Serialize + JsonSchema,
     <T as OperationOutput>::Inner: Serialize + From<T>,
 {
-    op.tag(&T::struct_name().to_lowercase())
+    let struct_name = T::struct_name();
+    op.tag(&struct_name.to_lowercase())
+        .input::<Path<i32>>()
         .description(&format!("Get a {} by id", T::struct_name()))
-        .response_with::<200, Json<T>, _>(|res| {
-            res.description(&format!("{} found", T::struct_name()))
+        .parameter::<i32, _>(&format!("{}_id", struct_name.to_lowercase()), |op| {
+            op.description("ID")
         })
-        .response_with::<404, (), _>(|res| {
-            res.description(&format!("{} not found", T::struct_name()))
-        })
+        .response_with::<200, Json<T>, _>(|res| res.description(&format!("{} found", struct_name)))
+        .response_with::<404, (), _>(|res| res.description(&format!("{} not found", struct_name)))
 }
