@@ -27,7 +27,8 @@ impl Config {
             Err(_) => info!("No .env file found"),
         }
 
-        let database_url = read_and_return_env_var(ENV_VAR_DATABASE_URL)?;
+        let database_url =
+            read_and_return_env_var(ENV_VAR_DATABASE_URL).unwrap_or("pokemonle.db".to_string());
 
         Ok(Config { database_url })
     }

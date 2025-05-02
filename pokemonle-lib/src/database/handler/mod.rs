@@ -7,6 +7,12 @@ use crate::config::Config;
 use crate::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool};
 use diesel::{Connection, MultiConnection, PgConnection, QueryResult, SqliteConnection};
+use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
+use std::sync::{Mutex, Once};
+
+const MIGRATIONS: EmbeddedMigrations = embed_migrations!("../migrations");
+
+static VFS: Mutex<(i32, Once)> = Mutex::new((0, Once::new()));
 
 #[derive(MultiConnection)]
 pub enum DatabaseConnection {
@@ -46,6 +52,21 @@ impl DatabaseClientPooled {
         let pool = if config.database_url.starts_with("postgres://") {
             Pool::builder().build(ConnectionManager::new(config.database_url))?
         } else {
+            let (vfs, once) = &*VFS.lock().unwrap();
+            let url = match vfs {
+                0 => &config.database_url,
+                1 => &format!("file:{}?vfs=opfs-sahpool", config.database_url),
+                2 => &format!("file:{}?vfs=relaxed-idb", config.database_url),
+                _ => unreachable!(),
+            };
+
+            let mut conn = SqliteConnection::establish(url)
+                .unwrap_or_else(|_| panic!("{}", format!("Error connecting to {}", url)));
+            once.call_once(|| {
+                // Run migrations
+                conn.run_pending_migrations(MIGRATIONS).unwrap();
+            });
+
             Pool::builder().build(ConnectionManager::new(config.database_url))?
         };
 
