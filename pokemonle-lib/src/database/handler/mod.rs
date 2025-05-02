@@ -5,10 +5,12 @@ mod version_group;
 
 use crate::config::Config;
 use crate::prelude::*;
+use diesel::migration::{MigrationVersion, Result as MigrationResult};
 use diesel::r2d2::{ConnectionManager, Pool};
 use diesel::{Connection, MultiConnection, PgConnection, QueryResult, SqliteConnection};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use std::sync::{Mutex, Once};
+use tracing::debug;
 
 const MIGRATIONS: EmbeddedMigrations = embed_migrations!("../migrations");
 
@@ -64,7 +66,17 @@ impl DatabaseClientPooled {
                 .unwrap_or_else(|_| panic!("{}", format!("Error connecting to {}", url)));
             once.call_once(|| {
                 // Run migrations
-                conn.run_pending_migrations(MIGRATIONS).unwrap();
+                let r = conn
+                    .pending_migrations(MIGRATIONS)
+                    .expect("Error loading migrations")
+                    .iter()
+                    .map(|m| {
+                        debug!("Running migration: {}", m.name());
+                        conn.run_migration(m)
+                    })
+                    .collect::<MigrationResult<Vec<MigrationVersion>>>();
+
+                r.unwrap();
             });
 
             Pool::builder().build(ConnectionManager::new(config.database_url))?
