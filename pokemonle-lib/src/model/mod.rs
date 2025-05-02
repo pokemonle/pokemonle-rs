@@ -12,7 +12,7 @@ use pokemonle_trait::StructName;
 use schemars::JsonSchema;
 use serde::Serialize;
 
-#[derive(Queryable, Selectable, Serialize, JsonSchema, StructName, OperationIo)]
+#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::generations)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
 pub struct Generation {
@@ -21,7 +21,7 @@ pub struct Generation {
     pub identifier: String,
 }
 
-#[derive(Queryable, Selectable, Serialize, JsonSchema, StructName, OperationIo)]
+#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::languages)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
 pub struct Language {
@@ -33,7 +33,7 @@ pub struct Language {
     pub order: i32,
 }
 
-#[derive(Queryable, Selectable, Serialize, JsonSchema, StructName, OperationIo)]
+#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::version_groups)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
 pub struct VersionGroup {
@@ -43,7 +43,7 @@ pub struct VersionGroup {
     pub order: i32,
 }
 
-#[derive(Queryable, Selectable, Serialize, JsonSchema, StructName, OperationIo)]
+#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::versions)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
 pub struct Version {
@@ -52,7 +52,7 @@ pub struct Version {
     pub identifier: String,
 }
 
-#[derive(Queryable, Selectable, Serialize, JsonSchema, StructName, OperationIo)]
+#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::move_damage_classes)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
 pub struct MoveDamageClass {
@@ -60,7 +60,7 @@ pub struct MoveDamageClass {
     pub identifier: String,
 }
 
-#[derive(Queryable, Selectable, Serialize, JsonSchema, StructName, OperationIo)]
+#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::types)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
 pub struct Type {
@@ -70,7 +70,7 @@ pub struct Type {
     pub damage_class_id: Option<i32>,
 }
 
-#[derive(Queryable, Selectable, Serialize, JsonSchema, StructName, OperationIo)]
+#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::abilities)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
 pub struct Ability {
@@ -80,7 +80,7 @@ pub struct Ability {
     pub is_main_series: Option<bool>,
 }
 
-#[derive(Queryable, Selectable, Serialize, JsonSchema, StructName, OperationIo)]
+#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::growth_rates)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
 pub struct GrowthRate {

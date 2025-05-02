@@ -1,7 +1,7 @@
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool};
 
-use super::DatabaseConnection;
+use super::{DatabaseConnection, DatabaseHandler};
 use crate::database::schema::languages::dsl::*;
 use crate::model::Language;
 
@@ -13,17 +13,21 @@ impl LanguageHandler {
     pub fn new(connection: Pool<ConnectionManager<DatabaseConnection>>) -> Self {
         LanguageHandler { connection }
     }
+}
 
-    pub fn get_all_languages(&self) -> Vec<Language> {
+impl DatabaseHandler for LanguageHandler {
+    type Resource = Language;
+
+    fn get_all_resources(&self) -> Vec<Self::Resource> {
         languages
             .select(Language::as_select())
             .load(&mut self.connection.get().unwrap())
             .expect("Error loading languages")
     }
 
-    pub fn get_language_by_id(&self, language_id: i32) -> Option<Language> {
+    fn get_resource_by_id(&self, resource_id: i32) -> Option<Self::Resource> {
         languages
-            .filter(id.eq(language_id))
+            .filter(id.eq(resource_id))
             .select(Language::as_select())
             .first::<Language>(&mut self.connection.get().unwrap())
             .ok()

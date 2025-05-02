@@ -6,7 +6,7 @@ use pokemonle_trait::StructName;
 use schemars::JsonSchema;
 use serde::Serialize;
 
-#[derive(Queryable, Selectable, Serialize, JsonSchema, StructName, OperationIo)]
+#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::evolution_chains)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
 pub struct EvolutionChain {
@@ -14,7 +14,7 @@ pub struct EvolutionChain {
     pub baby_trigger_item_id: Option<i32>,
 }
 
-#[derive(Queryable, Selectable, Serialize, JsonSchema, StructName, OperationIo)]
+#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::evolution_triggers)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
 pub struct EvolutionTrigger {

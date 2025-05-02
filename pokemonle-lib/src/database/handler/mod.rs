@@ -42,6 +42,12 @@ impl DatabaseClient {
     }
 }
 
+pub trait DatabaseHandler {
+    type Resource;
+    fn get_all_resources(&self) -> Vec<Self::Resource>;
+    fn get_resource_by_id(&self, resource_id: i32) -> Option<Self::Resource>;
+}
+
 #[derive(Clone)]
 pub struct DatabaseClientPooled {
     connection: Pool<ConnectionManager<DatabaseConnection>>,

@@ -6,7 +6,7 @@ use pokemonle_trait::StructName;
 use schemars::JsonSchema;
 use serde::Serialize;
 
-#[derive(Queryable, Selectable, Serialize, JsonSchema, StructName, OperationIo)]
+#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::pokemon_colors)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
 pub struct PokemonColor {
@@ -14,7 +14,7 @@ pub struct PokemonColor {
     pub identifier: String,
 }
 
-#[derive(Queryable, Selectable, Serialize, JsonSchema, StructName, OperationIo)]
+#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::pokemon_shapes)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
 pub struct PokemonShape {
@@ -22,7 +22,7 @@ pub struct PokemonShape {
     pub identifier: String,
 }
 
-#[derive(Queryable, Selectable, Serialize, JsonSchema, StructName, OperationIo)]
+#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::pokemon_habitats)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
 pub struct PokemonHabitat {
@@ -30,7 +30,7 @@ pub struct PokemonHabitat {
     pub identifier: String,
 }
 
-#[derive(Queryable, Selectable, Serialize, JsonSchema, StructName, OperationIo)]
+#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::pokemon)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
 pub struct Pokemon {
@@ -44,7 +44,7 @@ pub struct Pokemon {
     pub is_default: bool,
 }
 
-#[derive(Queryable, Selectable, Serialize, JsonSchema, StructName, OperationIo)]
+#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::pokemon_species)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
 pub struct PokemonSpecies {

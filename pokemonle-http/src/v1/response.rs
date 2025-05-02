@@ -2,6 +2,7 @@ use aide::{
     transform::TransformOperation,
     // openapi::{Operation, Response},
     OperationIo,
+
     OperationOutput, // OperationOutput,
 };
 use axum::{extract::Path, Json};
@@ -15,6 +16,13 @@ use serde::{Deserialize, Serialize};
 pub struct ListResponse<T> {
     pub data: Vec<T>,
     pub total: usize,
+}
+
+impl<T> ListResponse<T> {
+    pub fn new(data: Vec<T>) -> Self {
+        let total = data.len();
+        Self { data, total }
+    }
 }
 
 pub fn list_items_docs<T>(op: TransformOperation) -> TransformOperation
@@ -41,12 +49,11 @@ where
     <T as OperationOutput>::Inner: Serialize + From<T>,
 {
     let struct_name = T::struct_name();
+
     op.tag(&struct_name.to_lowercase())
         .input::<Path<i32>>()
         .description(&format!("Get a {} by id", T::struct_name()))
-        .parameter::<i32, _>(&format!("{}_id", struct_name.to_lowercase()), |op| {
-            op.description("ID")
-        })
+        .parameter::<i32, _>("id", |tp| tp.description("ID"))
         .response_with::<200, Json<T>, _>(|res| res.description(&format!("{} found", struct_name)))
         .response_with::<404, (), _>(|res| res.description(&format!("{} not found", struct_name)))
 }

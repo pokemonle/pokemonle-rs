@@ -6,7 +6,7 @@ use pokemonle_trait::StructName;
 use schemars::JsonSchema;
 use serde::Serialize;
 
-#[derive(Queryable, Selectable, Serialize, JsonSchema, StructName, OperationIo)]
+#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::item_pockets)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
 pub struct ItemPocket {
@@ -14,7 +14,7 @@ pub struct ItemPocket {
     pub identifier: String,
 }
 
-#[derive(Queryable, Selectable, Serialize, JsonSchema, StructName, OperationIo)]
+#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::item_categories)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
 pub struct ItemCategory {
@@ -23,7 +23,7 @@ pub struct ItemCategory {
     pub identifier: String,
 }
 
-#[derive(Queryable, Selectable, Serialize, JsonSchema, StructName, OperationIo)]
+#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::item_fling_effects)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
 pub struct ItemFlingEffect {
@@ -31,7 +31,7 @@ pub struct ItemFlingEffect {
     pub identifier: String,
 }
 
-#[derive(Queryable, Selectable, Serialize, JsonSchema, StructName, OperationIo)]
+#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::items)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
 pub struct Item {
