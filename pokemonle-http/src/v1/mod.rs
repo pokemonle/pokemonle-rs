@@ -1,10 +1,14 @@
+mod game;
 mod pokemon;
 mod resource;
 mod response;
 
+use std::sync::Arc;
+
 use aide::axum::ApiRouter;
 
 use pokemonle_lib::{
+    crypto::Crypto,
     database::handler::DatabaseClientPooled,
     model::{Generation, Type},
 };
@@ -15,6 +19,7 @@ pub use response::ListResponse;
 #[derive(Clone)]
 pub struct AppState {
     pub pool: DatabaseClientPooled,
+    pub crypto: Arc<dyn Crypto>,
 }
 
 fn item_routers() -> ApiRouter<AppState> {
@@ -42,7 +47,7 @@ pub fn routers() -> ApiRouter<AppState> {
             "/abilities",
             api_routers::<Ability, _, _>(|state| state.pool.ability_handler()),
         )
-        // .nest("/game", game::routers())
+        .nest("/game", game::routers())
         .nest(
             "/generations",
             api_routers::<Generation, _, _>(|state| state.pool.generation_handler()),

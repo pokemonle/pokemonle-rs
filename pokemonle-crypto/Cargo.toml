@@ -1,0 +1,18 @@
+[package]
+name = "pokemonle-crypto"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+rand = "^0.9"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "1.0"
+aes-gcm = { version = "0.10", optional = true }
+chacha20poly1305 = { version = "0.10", optional = true }
+base64 = "0.22.1"
+
+[features]
+default = ["aes-gcm"]
+aes-gcm = ["dep:aes-gcm"]
+chacha20 = ["dep:chacha20poly1305"]

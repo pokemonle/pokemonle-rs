@@ -13,8 +13,10 @@ axum-extra = { version = "0.9.3", features = ["typed-header"] }
 aide = { version = "^0.14", features = [
     "axum",
     "axum-json",
+    "axum-query",
     "scalar",
     "macros",
+
 ] }
 serde = { version = "1.0", features = ["derive"] }
 tracing = "0.1"

@@ -5,7 +5,7 @@ use crate::v1::resource::api_routers;
 use super::AppState;
 
 pub fn routers() -> ApiRouter<AppState> {
-    use pokemonle_lib::model::{Pokemon, PokemonColor, PokemonHabitat, PokemonShape};
+    use pokemonle_lib::model::Pokemon;
 
     ApiRouter::new().nest(
         "/pokemons",

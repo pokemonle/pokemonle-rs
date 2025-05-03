@@ -4,7 +4,7 @@ use diesel::prelude::*;
 
 use pokemonle_trait::StructName;
 use schemars::JsonSchema;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::pokemon_colors)]
@@ -48,7 +48,9 @@ pub struct Pokemon {
     pub is_default: bool,
 }
 
-#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
+#[derive(
+    Queryable, Selectable, Serialize, Deserialize, Debug, Clone, JsonSchema, StructName, OperationIo,
+)]
 #[diesel(table_name = schema::pokemon_species)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
 #[pokemonle(tags = ["pokemon", "species"])]

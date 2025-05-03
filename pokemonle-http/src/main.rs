@@ -33,9 +33,12 @@ async fn main() {
 
     aide::generate::extract_schemas(true);
 
-    let dbc = pokemonle_lib::database::handler::DatabaseClientPooled::new().unwrap();
+    let state = {
+        let pool = pokemonle_lib::database::handler::DatabaseClientPooled::new().unwrap();
+        let crypto = Arc::new(pokemonle_lib::crypto::new());
 
-    let state = v1::AppState { pool: dbc };
+        v1::AppState { pool, crypto }
+    };
 
     let mut api = OpenApi {
         info: Info {
