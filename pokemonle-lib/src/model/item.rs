@@ -9,6 +9,7 @@ use serde::Serialize;
 #[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::item_pockets)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
+#[pokemonle(tags = ["item"])]
 pub struct ItemPocket {
     pub id: i32,
     pub identifier: String,
@@ -17,6 +18,7 @@ pub struct ItemPocket {
 #[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::item_categories)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
+#[pokemonle(tags = ["item"])]
 pub struct ItemCategory {
     pub id: i32,
     pub pocket_id: i32,

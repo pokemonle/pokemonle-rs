@@ -15,6 +15,7 @@ use serde::Serialize;
 #[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::generations)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
+#[pokemonle(tags = ["generation"])]
 pub struct Generation {
     pub id: i32,
     pub main_region_id: i32,
@@ -24,6 +25,7 @@ pub struct Generation {
 #[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::languages)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
+#[pokemonle(tags = ["language"])]
 pub struct Language {
     pub id: i32,
     pub iso639: String,
@@ -36,6 +38,7 @@ pub struct Language {
 #[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::version_groups)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
+#[pokemonle(tags = ["version", "version-group"])]
 pub struct VersionGroup {
     pub id: i32,
     pub generation_id: i32,
@@ -46,6 +49,7 @@ pub struct VersionGroup {
 #[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::versions)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
+#[pokemonle(tags = ["version"])]
 pub struct Version {
     pub id: i32,
     pub version_group_id: i32,
@@ -55,6 +59,7 @@ pub struct Version {
 #[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::move_damage_classes)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
+#[pokemonle(tags = ["move"])]
 pub struct MoveDamageClass {
     pub id: i32,
     pub identifier: String,
@@ -63,6 +68,7 @@ pub struct MoveDamageClass {
 #[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::types)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
+#[pokemonle(tags = ["type"])]
 pub struct Type {
     pub id: i32,
     pub identifier: String,
@@ -73,6 +79,7 @@ pub struct Type {
 #[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::abilities)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
+#[pokemonle(tags = ["ability"])]
 pub struct Ability {
     pub id: i32,
     pub identifier: String,

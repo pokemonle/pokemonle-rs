@@ -29,7 +29,9 @@ pub fn list_items_docs<T>(op: TransformOperation) -> TransformOperation
 where
     T: JsonSchema + Serialize + StructName,
 {
-    op.tag(&T::struct_name().to_lowercase())
+    T::tags()
+        .iter()
+        .fold(op, |acc, tag| acc.tag(tag))
         .description(&format!("Get a list of {}", T::struct_name()))
         .response_with::<200, Json<ListResponse<T>>, _>(|res| {
             res.description("example")
@@ -50,7 +52,9 @@ where
 {
     let struct_name = T::struct_name();
 
-    op.tag(&struct_name.to_lowercase())
+    T::tags()
+        .iter()
+        .fold(op, |acc, tag| acc.tag(tag))
         .input::<Path<i32>>()
         .description(&format!("Get a {} by id", T::struct_name()))
         .parameter::<i32, _>("id", |tp| tp.description("ID"))

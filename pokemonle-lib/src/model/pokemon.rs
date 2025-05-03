@@ -9,6 +9,7 @@ use serde::Serialize;
 #[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::pokemon_colors)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
+#[pokemonle(tags = ["pokemon", "color"])]
 pub struct PokemonColor {
     pub id: i32,
     pub identifier: String,
@@ -17,6 +18,7 @@ pub struct PokemonColor {
 #[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::pokemon_shapes)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
+#[pokemonle(tags = ["pokemon", "shape"])]
 pub struct PokemonShape {
     pub id: i32,
     pub identifier: String,
@@ -25,6 +27,7 @@ pub struct PokemonShape {
 #[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::pokemon_habitats)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
+#[pokemonle(tags = ["pokemon", "habitat"])]
 pub struct PokemonHabitat {
     pub id: i32,
     pub identifier: String,
@@ -33,6 +36,7 @@ pub struct PokemonHabitat {
 #[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::pokemon)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
+#[pokemonle(tags = ["pokemon"])]
 pub struct Pokemon {
     pub id: i32,
     pub identifier: String,
@@ -47,6 +51,7 @@ pub struct Pokemon {
 #[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::pokemon_species)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
+#[pokemonle(tags = ["pokemon", "species"])]
 pub struct PokemonSpecies {
     pub id: i32,
     pub identifier: String,
