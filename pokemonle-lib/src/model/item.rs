@@ -36,6 +36,7 @@ pub struct ItemFlingEffect {
 #[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::items)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
+#[pokemonle(tags = ["item"])]
 pub struct Item {
     pub id: i32,
     pub identifier: String,

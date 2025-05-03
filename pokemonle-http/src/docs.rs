@@ -20,7 +20,7 @@ pub fn routes() -> ApiRouter<AppState> {
             "/",
             get_with(
                 Scalar::new("/docs/private/api.json")
-                    .with_title("Aide Axum")
+                    .with_title("Pokemonle API")
                     .axum_handler(),
                 |op| op.description("This documentation page."),
             ),

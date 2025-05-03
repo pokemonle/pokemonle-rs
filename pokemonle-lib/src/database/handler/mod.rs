@@ -2,6 +2,7 @@ mod ability;
 mod generation;
 mod item;
 mod language;
+mod pokemon;
 mod r#type;
 mod version;
 mod version_group;
@@ -120,5 +121,9 @@ impl DatabaseClientPooled {
 
     pub fn type_handler(&self) -> r#type::TypeHandler {
         r#type::TypeHandler::new(self.connection.clone())
+    }
+
+    pub fn pokemon_handler(&self) -> pokemon::PokemonHandler {
+        pokemon::PokemonHandler::new(self.connection.clone())
     }
 }

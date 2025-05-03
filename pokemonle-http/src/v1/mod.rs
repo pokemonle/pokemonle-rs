@@ -1,3 +1,4 @@
+mod pokemon;
 mod resource;
 mod response;
 
@@ -5,9 +6,9 @@ use aide::axum::ApiRouter;
 
 use pokemonle_lib::{
     database::handler::DatabaseClientPooled,
-    model::{Generation, Item, ItemCategory, ItemPocket, Type},
+    model::{Generation, Type},
 };
-use resource::{api_routers, api_routers_with_transform};
+use resource::api_routers;
 
 pub use response::ListResponse;
 
@@ -16,13 +17,45 @@ pub struct AppState {
     pub pool: DatabaseClientPooled,
 }
 
+fn item_routers() -> ApiRouter<AppState> {
+    use pokemonle_lib::model::{Item, ItemCategory, ItemPocket};
+    ApiRouter::new()
+        .nest(
+            "/items",
+            api_routers::<Item, _, _>(|state| state.pool.item_handler()),
+        )
+        .nest(
+            "/item-categories",
+            api_routers::<ItemCategory, _, _>(|state| state.pool.item_handler().category_handler()),
+        )
+        .nest(
+            "/item-pockets",
+            api_routers::<ItemPocket, _, _>(|state| state.pool.item_handler().pocket_handler()),
+        )
+}
+
 pub fn routers() -> ApiRouter<AppState> {
     use pokemonle_lib::model::{Ability, Language, Version, VersionGroup};
 
     ApiRouter::new()
         .nest(
+            "/abilities",
+            api_routers::<Ability, _, _>(|state| state.pool.ability_handler()),
+        )
+        // .nest("/game", game::routers())
+        .nest(
+            "/generations",
+            api_routers::<Generation, _, _>(|state| state.pool.generation_handler()),
+        )
+        .merge(item_routers())
+        .nest(
             "/languages",
             api_routers::<Language, _, _>(|state| state.pool.language_handler()),
+        )
+        .merge(pokemon::routers())
+        .nest(
+            "/types",
+            api_routers::<Type, _, _>(|state| state.pool.type_handler()),
         )
         .nest(
             "/versions",
@@ -31,35 +64,5 @@ pub fn routers() -> ApiRouter<AppState> {
         .nest(
             "/version-groups",
             api_routers::<VersionGroup, _, _>(|state| state.pool.version_group_handler()),
-        )
-        .nest(
-            "/abilities",
-            api_routers::<Ability, _, _>(|state| state.pool.ability_handler()),
-        )
-        .nest(
-            "/generations",
-            api_routers::<Generation, _, _>(|state| state.pool.generation_handler()),
-        )
-        .nest(
-            "/items",
-            api_routers::<Item, _, _>(|state| state.pool.item_handler()),
-        )
-        .nest(
-            "/item-categories",
-            api_routers_with_transform::<ItemCategory, _, _, _>(
-                |state| state.pool.item_handler().category_handler(),
-                |o| o.tag("item"),
-            ),
-        )
-        .nest(
-            "/item-pockets",
-            api_routers_with_transform::<ItemPocket, _, _, _>(
-                |state| state.pool.item_handler().pocket_handler(),
-                |o| o.tag("item"),
-            ),
-        )
-        .nest(
-            "/types",
-            api_routers::<Type, _, _>(|state| state.pool.type_handler()),
         )
 }
