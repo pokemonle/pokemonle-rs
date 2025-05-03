@@ -1,5 +1,8 @@
 use crate::error::Error;
-use aide::axum::{routing::get, ApiRouter, IntoApiResponse};
+use aide::{
+    axum::{routing::get_with, ApiRouter, IntoApiResponse},
+    transform::TransformOperation,
+};
 use async_session::serde_json::{self};
 use axum::{
     extract::{Query, State},
@@ -49,6 +52,10 @@ async fn init_game(
     }
 }
 
+fn init_game_docs(op: TransformOperation) -> TransformOperation {
+    op.response_with::<200, &str, _>(|res| res.description("example").example("encrypted data"))
+}
+
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 struct StopGameQuery {
     pub data: String,
@@ -60,7 +67,7 @@ async fn stop_game(
 ) -> impl IntoApiResponse {
     match state
         .crypto
-        .decrypt(data.as_bytes())
+        .decrypt(data.trim().replace("\"", "").as_bytes())
         .and_then(|decrypted| {
             serde_json::from_slice::<PokemonSpecies>(&decrypted)
                 .map_err(CryptoError::SerdeJsonError)
@@ -72,8 +79,14 @@ async fn stop_game(
     }
 }
 
+fn stop_game_docs(op: TransformOperation) -> TransformOperation {
+    op.description("Stop the game")
+        .response_with::<200, Json<PokemonSpecies>, _>(|res| res.description("example"))
+        .response_with::<400, (), _>(|res| res.description("Invalid data"))
+}
+
 pub fn routers() -> ApiRouter<AppState> {
     ApiRouter::new()
-        .api_route("/init", get(init_game))
-        .api_route("/giveup", get(stop_game))
+        .api_route("/init", get_with(init_game, init_game_docs))
+        .api_route("/giveup", get_with(stop_game, stop_game_docs))
 }
