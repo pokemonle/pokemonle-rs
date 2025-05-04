@@ -14,6 +14,7 @@ use aide::{
 
 use std::{net::SocketAddr, sync::Arc};
 use tokio::signal;
+use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{self, layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -55,6 +56,12 @@ async fn main() {
         .with_state(state)
         .finish_api(&mut api)
         .layer(Extension(Arc::new(api)))
+        .layer(
+            CorsLayer::new()
+                .allow_origin(Any)
+                .allow_methods(Any)
+                .allow_headers(Any), // .allow_credentials(true),
+        )
         .layer(
             TraceLayer::new_for_http()
                 // Create our own span for the request and include the matched path. The matched
