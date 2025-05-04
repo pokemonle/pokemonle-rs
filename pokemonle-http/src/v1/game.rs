@@ -53,7 +53,8 @@ async fn init_game(
 }
 
 fn init_game_docs(op: TransformOperation) -> TransformOperation {
-    op.response_with::<200, &str, _>(|res| res.description("example").example("encrypted data"))
+    op.tag("game")
+        .response_with::<200, &str, _>(|res| res.description("example").example("encrypted data"))
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
@@ -80,7 +81,8 @@ async fn stop_game(
 }
 
 fn stop_game_docs(op: TransformOperation) -> TransformOperation {
-    op.description("Stop the game")
+    op.tag("game")
+        .description("Stop the game")
         .response_with::<200, Json<PokemonSpecies>, _>(|res| res.description("example"))
         .response_with::<400, (), _>(|res| res.description("Invalid data"))
 }

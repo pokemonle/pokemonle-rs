@@ -19,3 +19,5 @@ target/
 .env
 *.sql
 *.db
+
+.DS_Store

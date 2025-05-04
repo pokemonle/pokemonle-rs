@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
-members = [ "pokemonle-crypto",
+members = [
+    "pokemonle-crypto",
     "pokemonle-derive",
     "pokemonle-http",
     "pokemonle-lib",
