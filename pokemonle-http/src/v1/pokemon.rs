@@ -1,5 +1,5 @@
 use aide::axum::ApiRouter;
-use pokemonle_lib::model::{PokemonColor, PokemonSpecieDetail, PokemonSpecies};
+use pokemonle_lib::model::PokemonSpecieDetail;
 
 use crate::v1::resource::api_routers;
 

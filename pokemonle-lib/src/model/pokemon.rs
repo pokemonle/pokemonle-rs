@@ -49,6 +49,7 @@ pub struct Pokemon {
 }
 
 #[derive(
+    Identifiable,
     Queryable,
     Selectable,
     Associations,
@@ -86,12 +87,80 @@ pub struct PokemonSpecies {
     pub conquest_order: Option<i32>,
 }
 
+#[derive(
+    Queryable,
+    Selectable,
+    Associations,
+    Serialize,
+    Debug,
+    Clone,
+    JsonSchema,
+    StructName,
+    OperationIo,
+)]
+#[diesel(table_name = schema::pokemon_abilities)]
+#[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
+#[diesel(belongs_to(Pokemon))]
+#[diesel(belongs_to(super::Ability))]
+#[pokemonle(tags = ["pokemon", "ability"])]
+pub struct PokemonAbility {
+    pub pokemon_id: i32,
+    pub ability_id: i32,
+    pub is_hidden: bool,
+    pub slot: i32,
+}
+
+#[derive(
+    Identifiable,
+    Queryable,
+    Selectable,
+    Associations,
+    Serialize,
+    Debug,
+    Clone,
+    JsonSchema,
+    StructName,
+    OperationIo,
+)]
+#[diesel(table_name = schema::pokemon_egg_groups)]
+#[diesel(belongs_to(PokemonSpecies,foreign_key = species_id))]
+#[diesel(belongs_to(super::EggGroup))]
+#[diesel(primary_key(species_id, egg_group_id))]
+#[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
+#[pokemonle(tags = ["pokemon", "egg_group"])]
+pub struct PokemonEggGroup {
+    pub species_id: i32,
+    pub egg_group_id: i32,
+}
+
+#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
+#[diesel(table_name = schema::pokemon_stats)]
+#[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
+#[pokemonle(tags = ["pokemon", "stat"])]
+pub struct PokemonStat {
+    pub pokemon_id: i32,
+    pub stat_id: i32,
+    pub base_stat: i32,
+    pub effort: i32,
+}
+
+#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
+#[diesel(table_name = schema::pokemon_types)]
+#[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
+#[pokemonle(tags = ["pokemon", "type"])]
+pub struct PokemonType {
+    pub pokemon_id: i32,
+    pub type_id: i32,
+    pub slot: i32,
+}
+
 #[derive(Queryable, OperationIo, StructName, Serialize, JsonSchema, Clone)]
 #[pokemonle(tags = ["pokemon", "species"])]
 pub struct PokemonSpecieDetail {
     #[serde(flatten)]
-    specie: PokemonSpecies,
-    color: PokemonColor,
-    shape: PokemonShape,
+    pub specie: PokemonSpecies,
+    pub egg_groups: Vec<super::EggGroup>,
+    pub color: PokemonColor,
+    pub shape: PokemonShape,
     // habitat: Option<PokemonHabitat>,
 }

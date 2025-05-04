@@ -95,3 +95,22 @@ pub struct GrowthRate {
     pub identifier: String,
     pub formula: String,
 }
+
+#[derive(
+    Identifiable,
+    Queryable,
+    Selectable,
+    Serialize,
+    Debug,
+    Clone,
+    JsonSchema,
+    StructName,
+    OperationIo,
+)]
+#[diesel(table_name = schema::egg_groups)]
+#[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
+#[pokemonle(tags = ["egg_group"])]
+pub struct EggGroup {
+    pub id: i32,
+    pub identifier: String,
+}

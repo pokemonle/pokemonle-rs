@@ -17,7 +17,7 @@ target/
 #.idea/
 
 .env
-*.sql
+export.sql
 *.db
 
 .DS_Store

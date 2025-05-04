@@ -1,11 +1,11 @@
 use super::{DatabaseConnection, DatabaseHandler};
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool};
-use pokemonle_trait::StructName;
 
-use crate::database::schema::{pokemon_colors, pokemon_habitats, pokemon_shapes};
+use crate::database::schema::{egg_groups, pokemon_colors, pokemon_shapes};
 use crate::model::{
-    Pokemon, PokemonColor, PokemonHabitat, PokemonShape, PokemonSpecieDetail, PokemonSpecies,
+    EggGroup, Pokemon, PokemonColor, PokemonEggGroup, PokemonShape, PokemonSpecieDetail,
+    PokemonSpecies,
 };
 
 pub struct PokemonHandler {
@@ -74,34 +74,97 @@ impl DatabaseHandler for PokemonSpecieHandler {
     fn get_all_resources(&self) -> Vec<Self::Resource> {
         use crate::database::schema::pokemon_species::dsl::*;
 
-        pokemon_species
+        let mut conn = self.connection.get().unwrap();
+
+        let all_species_with_details = pokemon_species
             .inner_join(pokemon_colors::table)
             .inner_join(pokemon_shapes::table)
-            // .inner_join(pokemon_habitats::table)
+            // .inner_join(pokemon_habitats::table) // 如果需要的话
             .select((
                 PokemonSpecies::as_select(),
                 PokemonColor::as_select(),
                 PokemonShape::as_select(),
-                // PokemonHabitat::as_select(),
+                // PokemonHabitat::as_select(), // 如果需要的话
             ))
-            .load(&mut self.connection.get().unwrap())
-            .expect("Error loading pokemon species")
+            .load::<(PokemonSpecies, PokemonColor, PokemonShape)>(&mut conn)
+            .expect("Error loading pokemon species with details");
+
+        // 然后查询所有相关的 egg_groups 关联
+        let egg_groups_data = PokemonEggGroup::belonging_to(
+            &all_species_with_details
+                .iter()
+                .map(|(ps, _, _)| ps)
+                .collect::<Vec<_>>(),
+        )
+        .inner_join(egg_groups::table)
+        .select((PokemonEggGroup::as_select(), EggGroup::as_select()))
+        .load::<(PokemonEggGroup, EggGroup)>(&mut conn)
+        .expect("Error loading egg groups");
+
+        // 将 egg_groups 按 species 分组
+        let grouped_egg_groups = egg_groups_data.grouped_by(
+            &all_species_with_details
+                .iter()
+                .map(|(ps, _, _)| ps)
+                .collect::<Vec<_>>(),
+        );
+
+        all_species_with_details
+            .into_iter()
+            .zip(grouped_egg_groups)
+            .map(|((species, color, shape), egg_group_relations)| {
+                let egg_groups = egg_group_relations
+                    .into_iter()
+                    .map(|(_, egg_group)| egg_group)
+                    .collect();
+
+                PokemonSpecieDetail {
+                    specie: species,
+                    egg_groups,
+                    color,
+                    shape,
+                    // habitat: habitat, // 如果你需要的话
+                }
+            })
+            .collect()
     }
 
     fn get_resource_by_id(&self, resource_id: i32) -> Option<Self::Resource> {
         use crate::database::schema::pokemon_species::dsl::*;
-        pokemon_species
+
+        let mut conn = self.connection.get().unwrap();
+
+        let (species, color, shape) = pokemon_species
+            .find(resource_id)
             .inner_join(pokemon_colors::table)
             .inner_join(pokemon_shapes::table)
-            // .inner_join(pokemon_habitats::table)
-            .filter(id.eq(resource_id))
+            // .inner_join(pokemon_habitats::table) // 如果需要的话
             .select((
                 PokemonSpecies::as_select(),
                 PokemonColor::as_select(),
                 PokemonShape::as_select(),
-                // PokemonHabitat::as_select(),
+                // PokemonHabitat::as_select(), // 如果需要的话
             ))
-            .first(&mut self.connection.get().unwrap())
-            .ok()
+            .first::<(PokemonSpecies, PokemonColor, PokemonShape)>(&mut conn)
+            .ok()?;
+
+        let egg_groups_data = PokemonEggGroup::belonging_to(&species)
+            .inner_join(egg_groups::table)
+            .select((PokemonEggGroup::as_select(), EggGroup::as_select()))
+            .load::<(PokemonEggGroup, EggGroup)>(&mut conn)
+            .ok()?;
+
+        let egg_groups = egg_groups_data
+            .into_iter()
+            .map(|(_, egg_group)| egg_group)
+            .collect();
+
+        Some(PokemonSpecieDetail {
+            specie: species,
+            egg_groups,
+            color,
+            shape,
+            // habitat, // 如果需要的话
+        })
     }
 }
