@@ -18,13 +18,6 @@ pub struct ListResponse<T> {
     pub total: usize,
 }
 
-impl<T> ListResponse<T> {
-    pub fn new(data: Vec<T>) -> Self {
-        let total = data.len();
-        Self { data, total }
-    }
-}
-
 pub fn list_items_docs<T>(op: TransformOperation) -> TransformOperation
 where
     T: JsonSchema + Serialize + StructName,

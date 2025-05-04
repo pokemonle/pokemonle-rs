@@ -1,7 +1,9 @@
 use super::{DatabaseConnection, DatabaseHandler};
+use diesel::dsl::count;
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool};
 
+use crate::database::pagination::{Paginated, PaginatedResource};
 use crate::database::schema::{egg_groups, pokemon_colors, pokemon_shapes};
 use crate::model::{
     EggGroup, Pokemon, PokemonColor, PokemonEggGroup, PokemonShape, PokemonSpecieDetail,
@@ -40,12 +42,28 @@ impl PokemonHandler {
 impl DatabaseHandler for PokemonHandler {
     type Resource = Pokemon;
 
-    fn get_all_resources(&self) -> Vec<Self::Resource> {
+    fn get_all_resources(&self, pagination: Paginated) -> PaginatedResource<Self::Resource> {
         use crate::database::schema::pokemon::dsl::*;
-        pokemon
+
+        let mut conn = self.connection.get().unwrap();
+
+        let total_items = pokemon.select(count(id)).first::<i64>(&mut conn).unwrap();
+        let total_pages = pagination.pages(total_items);
+
+        let items = pokemon
             .select(Pokemon::as_select())
-            .load(&mut self.connection.get().unwrap())
-            .expect("Error loading pokemons")
+            .limit(pagination.limit())
+            .offset(pagination.offset())
+            .load(&mut conn)
+            .expect("Error loading abilities");
+
+        PaginatedResource {
+            data: items,
+            total_pages,
+            total_items,
+            page: pagination.page,
+            per_page: pagination.per_page,
+        }
     }
 
     fn get_resource_by_id(&self, resource_id: i32) -> Option<Self::Resource> {
@@ -71,10 +89,15 @@ impl PokemonSpecieHandler {
 impl DatabaseHandler for PokemonSpecieHandler {
     type Resource = PokemonSpecieDetail;
 
-    fn get_all_resources(&self) -> Vec<Self::Resource> {
+    fn get_all_resources(&self, pagination: Paginated) -> PaginatedResource<Self::Resource> {
         use crate::database::schema::pokemon_species::dsl::*;
 
         let mut conn = self.connection.get().unwrap();
+        let total_items = pokemon_species
+            .select(count(id))
+            .first::<i64>(&mut conn)
+            .unwrap();
+        let total_pages = pagination.pages(total_items);
 
         let all_species_with_details = pokemon_species
             .inner_join(pokemon_colors::table)
@@ -86,6 +109,8 @@ impl DatabaseHandler for PokemonSpecieHandler {
                 PokemonShape::as_select(),
                 // PokemonHabitat::as_select(), // 如果需要的话
             ))
+            .limit(pagination.limit())
+            .offset(pagination.offset())
             .load::<(PokemonSpecies, PokemonColor, PokemonShape)>(&mut conn)
             .expect("Error loading pokemon species with details");
 
@@ -109,24 +134,30 @@ impl DatabaseHandler for PokemonSpecieHandler {
                 .collect::<Vec<_>>(),
         );
 
-        all_species_with_details
-            .into_iter()
-            .zip(grouped_egg_groups)
-            .map(|((species, color, shape), egg_group_relations)| {
-                let egg_groups = egg_group_relations
-                    .into_iter()
-                    .map(|(_, egg_group)| egg_group)
-                    .collect();
+        PaginatedResource {
+            data: all_species_with_details
+                .into_iter()
+                .zip(grouped_egg_groups)
+                .map(|((species, color, shape), egg_group_relations)| {
+                    let egg_groups = egg_group_relations
+                        .into_iter()
+                        .map(|(_, egg_group)| egg_group)
+                        .collect();
 
-                PokemonSpecieDetail {
-                    specie: species,
-                    egg_groups,
-                    color,
-                    shape,
-                    // habitat: habitat, // 如果你需要的话
-                }
-            })
-            .collect()
+                    PokemonSpecieDetail {
+                        specie: species,
+                        egg_groups,
+                        color,
+                        shape,
+                        // habitat: habitat,
+                    }
+                })
+                .collect(),
+            total_pages,
+            total_items,
+            page: pagination.page,
+            per_page: pagination.per_page,
+        }
     }
 
     fn get_resource_by_id(&self, resource_id: i32) -> Option<Self::Resource> {
@@ -138,12 +169,10 @@ impl DatabaseHandler for PokemonSpecieHandler {
             .find(resource_id)
             .inner_join(pokemon_colors::table)
             .inner_join(pokemon_shapes::table)
-            // .inner_join(pokemon_habitats::table) // 如果需要的话
             .select((
                 PokemonSpecies::as_select(),
                 PokemonColor::as_select(),
                 PokemonShape::as_select(),
-                // PokemonHabitat::as_select(), // 如果需要的话
             ))
             .first::<(PokemonSpecies, PokemonColor, PokemonShape)>(&mut conn)
             .ok()?;

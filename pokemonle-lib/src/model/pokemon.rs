@@ -155,6 +155,14 @@ pub struct PokemonType {
 }
 
 #[derive(Queryable, OperationIo, StructName, Serialize, JsonSchema, Clone)]
+#[pokemonle(tags = ["pokemon"])]
+pub struct PokemonDetail {
+    #[serde(flatten)]
+    pub pokemon: Pokemon,
+    pub abilities: Vec<PokemonAbility>,
+}
+
+#[derive(Queryable, OperationIo, StructName, Serialize, JsonSchema, Clone)]
 #[pokemonle(tags = ["pokemon", "species"])]
 pub struct PokemonSpecieDetail {
     #[serde(flatten)]

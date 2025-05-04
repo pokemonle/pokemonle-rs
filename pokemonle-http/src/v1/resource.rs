@@ -5,12 +5,12 @@ use aide::{
     OperationOutput,
 };
 use axum::{
-    extract::{Path, State},
+    extract::{Path, Query, State},
     http::StatusCode,
     response::IntoResponse,
     Json,
 };
-use pokemonle_lib::database::handler::DatabaseHandler;
+use pokemonle_lib::database::{handler::DatabaseHandler, pagination::Paginated};
 use pokemonle_trait::StructName;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -44,6 +44,7 @@ where
 
     async fn list<T, H>(
         State(state): State<AppState>,
+        Query(pagination): Query<Paginated>,
         handle_fn: impl Fn(AppState) -> H,
     ) -> impl IntoApiResponse
     where
@@ -51,10 +52,7 @@ where
         H: DatabaseHandler<Resource = T>,
     {
         let handler = handle_fn(state);
-        (
-            StatusCode::OK,
-            Json(ListResponse::new(handler.get_all_resources())),
-        )
+        (StatusCode::OK, Json(handler.get_all_resources(pagination)))
     }
 
     async fn get<T, H>(
@@ -85,7 +83,7 @@ where
         .api_route(
             "/",
             get_with(
-                move |state| list::<T, H>(state, handler_fn.clone()),
+                move |(state, pagination)| list::<T, H>(state, pagination, handler_fn.clone()),
                 move |op| transform(list_items_docs::<T>(op)),
             ),
         )

@@ -16,6 +16,8 @@ use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use std::sync::{Mutex, Once};
 use tracing::debug;
 
+use super::pagination::{self, PaginatedResource};
+
 const MIGRATIONS: EmbeddedMigrations = embed_migrations!("../migrations");
 
 static VFS: Mutex<(i32, Once)> = Mutex::new((0, Once::new()));
@@ -48,7 +50,10 @@ impl DatabaseClient {
 
 pub trait DatabaseHandler {
     type Resource;
-    fn get_all_resources(&self) -> Vec<Self::Resource>;
+    fn get_all_resources(
+        &self,
+        pagination: super::pagination::Paginated,
+    ) -> PaginatedResource<Self::Resource>;
     fn get_resource_by_id(&self, resource_id: i32) -> Option<Self::Resource>;
 }
 

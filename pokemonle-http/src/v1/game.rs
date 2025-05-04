@@ -20,7 +20,13 @@ use super::AppState;
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 struct InitGameQuery {
     #[validate(range(min = 0, max = 511))]
+    #[serde(default = "default_encode")]
     pub encode: u16,
+}
+
+#[inline]
+fn default_encode() -> u16 {
+    511
 }
 
 impl InitGameQuery {
