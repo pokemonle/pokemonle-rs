@@ -83,14 +83,14 @@ where
         .api_route(
             "/",
             get_with(
-                move |(state, pagination)| list::<T, H>(state, pagination, handler_fn.clone()),
+                move |(state, pagination)| list::<T, H>(state, pagination, handler_fn),
                 move |op| transform(list_items_docs::<T>(op)),
             ),
         )
         .api_route(
             "/{id}",
             get_with(
-                move |state, id| get::<T, H>(state, id, handler_fn.clone()),
+                move |state, id| get::<T, H>(state, id, handler_fn),
                 // get_item_by_id_docs with transform
                 move |op| transform(get_item_by_id_docs::<T>(op)),
             ),

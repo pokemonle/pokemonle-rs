@@ -46,7 +46,7 @@ async fn init_game(
         .pool
         .pokemon()
         .get_random_pokemon(&q.indices())
-        .ok_or_else(|| return Error::ResourceNotFound(String::from("No pokemon found")))
+        .ok_or_else(|| Error::ResourceNotFound(String::from("No pokemon found")))
         .and_then(|pm| {
             serde_json::to_vec(&pm)
                 .map_err(CryptoError::SerdeJsonError)

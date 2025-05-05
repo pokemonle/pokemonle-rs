@@ -17,9 +17,7 @@ pub fn new() -> impl Crypto {
     let config = crate::config::Config::new().unwrap();
 
     let crypto_key = config.crypto_key.as_bytes().to_vec();
-    let crypto_key = vec_to_32_bytes(&crypto_key)
-        .try_into()
-        .expect("Invalid key length");
+    let crypto_key = vec_to_32_bytes(&crypto_key);
 
     AesGcmCrypto::new(crypto_key)
 }

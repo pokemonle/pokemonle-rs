@@ -15,8 +15,8 @@ impl AesGcmCrypto {
     }
 
     pub fn random() -> Self {
-        let mut key = [0u8; 32];
-        rand::random::<[u8; 32]>().copy_from_slice(&mut key);
+        let key = [0u8; 32];
+        rand::random::<[u8; 32]>().copy_from_slice(&key);
         Self { key }
     }
 }
