@@ -2,6 +2,7 @@ mod berry;
 mod contest;
 mod encounter;
 mod item;
+mod location;
 mod pokemon;
 
 use crate::config::Config;
@@ -102,17 +103,22 @@ impl_handlers! {
     ability: ability::AbilityHandler,
     berry: berry::BerryHandler,
     berry_firmness: berry::BerryFirmnessHandler,
+    contest_effect: contest::ContestEffectHandler,
+    contest_type: contest::ContestTypeHandler,
     encounter: encounter::EncounterHandler,
     encounter_condition: encounter::EncounterConditionHandler,
     encounter_condition_value: encounter::EncounterConditionValueHandler,
     encounter_slot: encounter::EncounterSlotHandler,
-    contest_effect: contest::ContestEffectHandler,
-    contest_type: contest::ContestTypeHandler,
+    encounter_method: encounter::EncounterMethodHandler,
     generation: generation::GenerationHandler,
+    location: location::LocationHandler,
+    location_area: location::LocationAreaHandler,
+    region: location::RegionHandler,
     item: item::ItemHandler,
     item_category: item::ItemCategoryHandler,
     item_pocket: item::ItemPocketHandler,
     language: language::LanguageHandler,
+    pokedex: pokedex::PokedexHandler,
     pokemon: pokemon::PokemonHandler,
     pokemon_specie: pokemon::PokemonSpecieHandler,
     r#type: r#type::TypeHandler,
@@ -156,6 +162,19 @@ mod language {
         Language,
         languages::dsl::languages,
         languages::dsl::id
+    );
+}
+
+mod pokedex {
+    use crate::database::schema::pokedexes;
+    use crate::impl_database_handler;
+    use crate::model::Pokedex;
+
+    impl_database_handler!(
+        PokedexHandler,
+        Pokedex,
+        pokedexes::dsl::pokedexes,
+        pokedexes::dsl::id
     );
 }
 

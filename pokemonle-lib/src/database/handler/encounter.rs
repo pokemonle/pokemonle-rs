@@ -1,8 +1,11 @@
 use crate::database::schema::{
-    encounter_condition_values, encounter_conditions, encounter_slots, encounters,
+    encounter_condition_values, encounter_conditions, encounter_methods, encounter_slots,
+    encounters,
 };
 use crate::impl_database_handler;
-use crate::model::{Encounter, EncounterCondition, EncounterConditionValue, EncounterSlot};
+use crate::model::{
+    Encounter, EncounterCondition, EncounterConditionValue, EncounterMethod, EncounterSlot,
+};
 
 impl_database_handler!(
     EncounterHandler,
@@ -30,4 +33,11 @@ impl_database_handler!(
     EncounterSlot,
     encounter_slots::dsl::encounter_slots,
     encounter_slots::dsl::id
+);
+
+impl_database_handler!(
+    EncounterMethodHandler,
+    EncounterMethod,
+    encounter_methods::dsl::encounter_methods,
+    encounter_methods::dsl::id
 );

@@ -73,7 +73,7 @@ pub struct EncounterConditionValueMap {
 #[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::location_area_encounter_rates)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
-#[pokemonle(tags = ["encounter"])]
+#[pokemonle(tags = ["encounter", "location"])]
 pub struct LocationAreaEncounterRate {
     pub location_area_id: i32,
     pub encounter_method_id: i32,

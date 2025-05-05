@@ -64,7 +64,7 @@ pub struct Pokemon {
 #[diesel(belongs_to(PokemonColor, foreign_key = color_id))]
 #[diesel(table_name = schema::pokemon_species)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
-#[pokemonle(tags = ["pokemon", "species"])]
+#[pokemonle(tags = ["pokemon"])]
 pub struct PokemonSpecies {
     pub id: i32,
     pub identifier: String,
@@ -163,7 +163,7 @@ pub struct PokemonDetail {
 }
 
 #[derive(Queryable, OperationIo, StructName, Serialize, JsonSchema, Clone)]
-#[pokemonle(tags = ["pokemon", "species"])]
+#[pokemonle(tags = ["pokemon"])]
 pub struct PokemonSpecieDetail {
     #[serde(flatten)]
     pub specie: PokemonSpecies,

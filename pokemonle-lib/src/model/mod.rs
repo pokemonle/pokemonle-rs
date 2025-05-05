@@ -6,11 +6,13 @@ mod berry;
 mod encounter;
 mod evo;
 mod item;
+mod location;
 mod pokemon;
 pub use berry::*;
 pub use encounter::*;
 pub use evo::*;
 pub use item::*;
+pub use location::*;
 pub use pokemon::*;
 use pokemonle_trait::StructName;
 use schemars::JsonSchema;
@@ -156,4 +158,24 @@ pub struct ContestEffect {
     pub id: i32,
     pub appeal: i32,
     pub jam: i32,
+}
+
+#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
+#[diesel(table_name = schema::pokedexes)]
+#[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
+#[pokemonle(tags = ["pokedex"])]
+pub struct Pokedex {
+    pub id: i32,
+    pub identifier: String,
+    pub is_main_series: bool,
+    pub region_id: Option<i32>,
+}
+
+#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
+#[diesel(table_name = schema::pokedex_version_groups)]
+#[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
+#[pokemonle(tags = ["pokedex"])]
+pub struct PokedexVersionGroup {
+    pub pokedex_id: i32,
+    pub version_group_id: i32,
 }

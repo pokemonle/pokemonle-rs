@@ -221,6 +221,22 @@ diesel::table! {
 }
 
 diesel::table! {
+    pokedex_version_groups (pokedex_id, version_group_id) {
+        pokedex_id -> Integer,
+        version_group_id -> Integer,
+    }
+}
+
+diesel::table! {
+    pokedexes (id) {
+        id -> Integer,
+        region_id -> Nullable<Integer>,
+        identifier -> Text,
+        is_main_series -> Bool,
+    }
+}
+
+diesel::table! {
     pokemon (id) {
         id -> Integer,
         identifier -> Text,
@@ -388,7 +404,11 @@ diesel::joinable!(items -> item_fling_effects (fling_effect_id));
 diesel::joinable!(location_area_encounter_rates -> encounter_methods (encounter_method_id));
 diesel::joinable!(location_area_encounter_rates -> location_areas (location_area_id));
 diesel::joinable!(location_area_encounter_rates -> versions (version_id));
+diesel::joinable!(location_areas -> locations (location_id));
 diesel::joinable!(locations -> regions (region_id));
+diesel::joinable!(pokedex_version_groups -> pokedexes (pokedex_id));
+diesel::joinable!(pokedex_version_groups -> version_groups (version_group_id));
+diesel::joinable!(pokedexes -> regions (region_id));
 diesel::joinable!(pokemon -> pokemon_species (species_id));
 diesel::joinable!(pokemon_abilities -> abilities (ability_id));
 diesel::joinable!(pokemon_abilities -> pokemon (pokemon_id));
@@ -438,6 +458,8 @@ diesel::allow_tables_to_appear_in_same_query!(
     location_areas,
     locations,
     move_damage_classes,
+    pokedex_version_groups,
+    pokedexes,
     pokemon,
     pokemon_abilities,
     pokemon_colors,
