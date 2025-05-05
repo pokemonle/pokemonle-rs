@@ -1,4 +1,6 @@
 mod ability;
+mod berry;
+mod contest;
 mod generation;
 mod item;
 mod language;
@@ -16,7 +18,7 @@ use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use std::sync::{Mutex, Once};
 use tracing::debug;
 
-use super::pagination::{self, PaginatedResource};
+use super::pagination::PaginatedResource;
 
 const MIGRATIONS: EmbeddedMigrations = embed_migrations!("../migrations");
 
@@ -114,6 +116,18 @@ impl DatabaseClientPooled {
 
     pub fn ability_handler(&self) -> ability::AbilityHandler {
         ability::AbilityHandler::new(self.connection.clone())
+    }
+
+    pub fn berry_handler(&self) -> berry::BerryHandler {
+        berry::BerryHandler::new(self.connection.clone())
+    }
+
+    pub fn contest_effect_handler(&self) -> contest::ContestEffectHandler {
+        contest::ContestEffectHandler::new(self.connection.clone())
+    }
+
+    pub fn contest_type_handler(&self) -> contest::ContestTypeHandler {
+        contest::ContestTypeHandler::new(self.connection.clone())
     }
 
     pub fn generation_handler(&self) -> generation::GenerationHandler {

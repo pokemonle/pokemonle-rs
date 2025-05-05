@@ -4,6 +4,7 @@ mod v1;
 use axum::{
     extract::{MatchedPath, Request},
     http::StatusCode,
+    response::Redirect,
     Extension,
 };
 
@@ -50,7 +51,7 @@ async fn main() {
     };
 
     let app = ApiRouter::new()
-        .route("/", get(|| async { "Hello, World!" }))
+        .route("/", get(|| async { Redirect::permanent("/docs") }))
         .nest("/v1", v1::routers())
         .nest("/docs", docs::routes())
         .with_state(state)

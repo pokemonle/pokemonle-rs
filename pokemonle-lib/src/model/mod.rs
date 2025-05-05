@@ -2,9 +2,11 @@ use crate::database::schema;
 use aide::OperationIo;
 use diesel::prelude::*;
 
+mod berry;
 mod evo;
 mod item;
 mod pokemon;
+pub use berry::*;
 pub use evo::*;
 pub use item::*;
 pub use pokemon::*;
@@ -113,4 +115,43 @@ pub struct GrowthRate {
 pub struct EggGroup {
     pub id: i32,
     pub identifier: String,
+}
+
+#[derive(
+    Identifiable,
+    Queryable,
+    Selectable,
+    Serialize,
+    Debug,
+    Clone,
+    JsonSchema,
+    StructName,
+    OperationIo,
+)]
+#[diesel(table_name = schema::contest_types)]
+#[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
+#[pokemonle(tags = ["contest"])]
+pub struct ContestType {
+    pub id: i32,
+    pub identifier: String,
+}
+
+#[derive(
+    Identifiable,
+    Queryable,
+    Selectable,
+    Serialize,
+    Debug,
+    Clone,
+    JsonSchema,
+    StructName,
+    OperationIo,
+)]
+#[diesel(table_name = schema::contest_effects)]
+#[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
+#[pokemonle(tags = ["contest"])]
+pub struct ContestEffect {
+    pub id: i32,
+    pub appeal: i32,
+    pub jam: i32,
 }

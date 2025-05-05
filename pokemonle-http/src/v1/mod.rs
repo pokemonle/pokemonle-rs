@@ -14,8 +14,6 @@ use pokemonle_lib::{
 };
 use resource::api_routers;
 
-pub use response::ListResponse;
-
 #[derive(Clone)]
 pub struct AppState {
     pub pool: DatabaseClientPooled,
@@ -39,6 +37,32 @@ fn item_routers() -> ApiRouter<AppState> {
         )
 }
 
+fn berry_routers() -> ApiRouter<AppState> {
+    use pokemonle_lib::model::{Berry, BerryFirmness};
+    ApiRouter::new()
+        .nest(
+            "/berries",
+            api_routers::<Berry, _, _>(|state| state.pool.berry_handler()),
+        )
+        .nest(
+            "/berry-firmness",
+            api_routers::<BerryFirmness, _, _>(|state| state.pool.berry_handler().firmness()),
+        )
+}
+
+fn contest_routers() -> ApiRouter<AppState> {
+    use pokemonle_lib::model::{ContestEffect, ContestType};
+    ApiRouter::new()
+        .nest(
+            "/contest-effects",
+            api_routers::<ContestEffect, _, _>(|state| state.pool.contest_effect_handler()),
+        )
+        .nest(
+            "/contest-types",
+            api_routers::<ContestType, _, _>(|state| state.pool.contest_type_handler()),
+        )
+}
+
 pub fn routers() -> ApiRouter<AppState> {
     use pokemonle_lib::model::{Ability, Language, Version, VersionGroup};
 
@@ -47,6 +71,8 @@ pub fn routers() -> ApiRouter<AppState> {
             "/abilities",
             api_routers::<Ability, _, _>(|state| state.pool.ability_handler()),
         )
+        .merge(berry_routers())
+        .merge(contest_routers())
         .nest("/game", game::routers())
         .nest(
             "/generations",

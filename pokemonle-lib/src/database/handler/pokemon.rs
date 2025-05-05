@@ -23,6 +23,14 @@ impl PokemonHandler {
         PokemonSpecieHandler::new(self.connection.clone())
     }
 
+    pub fn get_all_identifiers(&self) -> Vec<String> {
+        use crate::database::schema::pokemon::dsl::*;
+        pokemon
+            .select(identifier)
+            .load::<String>(&mut self.connection.get().unwrap())
+            .expect("Error loading pokemon identifiers")
+    }
+
     // get a random pokemon from given generation array
     pub fn get_random_pokemon(&self, generations: &[usize]) -> Option<PokemonSpecies> {
         use crate::database::schema::pokemon_species::dsl::*;

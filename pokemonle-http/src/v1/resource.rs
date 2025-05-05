@@ -15,7 +15,7 @@ use pokemonle_trait::StructName;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use super::{AppState, ListResponse};
+use super::AppState;
 
 #[derive(Deserialize, JsonSchema)]
 struct Resource {

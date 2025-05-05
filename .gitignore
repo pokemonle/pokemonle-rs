@@ -21,3 +21,5 @@ export.sql
 *.db
 
 .DS_Store
+csv/
+*.csv

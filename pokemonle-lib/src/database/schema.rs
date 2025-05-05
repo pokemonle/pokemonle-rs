@@ -10,6 +10,43 @@ diesel::table! {
 }
 
 diesel::table! {
+    berries (id) {
+        id -> Integer,
+        item_id -> Integer,
+        firmness_id -> Integer,
+        natural_gift_power -> Integer,
+        natural_gift_type_id -> Integer,
+        size -> Integer,
+        max_harvest -> Integer,
+        growth_time -> Integer,
+        soil_dryness -> Integer,
+        smoothness -> Integer,
+    }
+}
+
+diesel::table! {
+    berry_firmness (id) {
+        id -> Integer,
+        identifier -> Text,
+    }
+}
+
+diesel::table! {
+    contest_effects (id) {
+        id -> Integer,
+        appeal -> Integer,
+        jam -> Integer,
+    }
+}
+
+diesel::table! {
+    contest_types (id) {
+        id -> Integer,
+        identifier -> Text,
+    }
+}
+
+diesel::table! {
     egg_groups (id) {
         id -> Integer,
         identifier -> Text,
@@ -263,6 +300,8 @@ diesel::table! {
 }
 
 diesel::joinable!(abilities -> generations (generation_id));
+diesel::joinable!(berries -> berry_firmness (firmness_id));
+diesel::joinable!(berries -> types (natural_gift_type_id));
 diesel::joinable!(evolution_chains -> items (baby_trigger_item_id));
 diesel::joinable!(item_categories -> item_pockets (pocket_id));
 diesel::joinable!(items -> item_categories (category_id));
@@ -292,6 +331,10 @@ diesel::joinable!(versions -> version_groups (version_group_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     abilities,
+    berries,
+    berry_firmness,
+    contest_effects,
+    contest_types,
     egg_groups,
     evolution_chains,
     evolution_triggers,

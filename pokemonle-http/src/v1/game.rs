@@ -93,8 +93,19 @@ fn stop_game_docs(op: TransformOperation) -> TransformOperation {
         .response_with::<400, (), _>(|res| res.description("Invalid data"))
 }
 
+async fn get_ids(Query(q): Query<InitGameQuery>) -> impl IntoApiResponse {
+    (StatusCode::OK, Json(q.indices())).into_response()
+}
+
+fn get_ids_docs(op: TransformOperation) -> TransformOperation {
+    op.tag("game")
+        .description("Get all matching generation IDs")
+        .response_with::<200, Json<Vec<usize>>, _>(|res| res.description("List of generation IDs"))
+}
+
 pub fn routers() -> ApiRouter<AppState> {
     ApiRouter::new()
         .api_route("/init", get_with(init_game, init_game_docs))
         .api_route("/giveup", get_with(stop_game, stop_game_docs))
+        .api_route("/ids", get_with(get_ids, get_ids_docs))
 }
