@@ -1,5 +1,6 @@
 mod berry;
 mod contest;
+mod encounter;
 mod item;
 mod pokemon;
 
@@ -101,6 +102,10 @@ impl_handlers! {
     ability: ability::AbilityHandler,
     berry: berry::BerryHandler,
     berry_firmness: berry::BerryFirmnessHandler,
+    encounter: encounter::EncounterHandler,
+    encounter_condition: encounter::EncounterConditionHandler,
+    encounter_condition_value: encounter::EncounterConditionValueHandler,
+    encounter_slot: encounter::EncounterSlotHandler,
     contest_effect: contest::ContestEffectHandler,
     contest_type: contest::ContestTypeHandler,
     generation: generation::GenerationHandler,

@@ -63,6 +63,31 @@ fn contest_routers() -> ApiRouter<AppState> {
         )
 }
 
+fn encounter_routers() -> ApiRouter<AppState> {
+    use pokemonle_lib::model::{
+        Encounter, EncounterCondition, EncounterConditionValue, EncounterSlot,
+    };
+    ApiRouter::new()
+        .nest(
+            "/encounters",
+            api_routers::<Encounter, _, _>(|state| state.pool.encounter()),
+        )
+        .nest(
+            "/encounter-conditions",
+            api_routers::<EncounterCondition, _, _>(|state| state.pool.encounter_condition()),
+        )
+        .nest(
+            "/encounter-condition-values",
+            api_routers::<EncounterConditionValue, _, _>(|state| {
+                state.pool.encounter_condition_value()
+            }),
+        )
+        .nest(
+            "/encounter-slots",
+            api_routers::<EncounterSlot, _, _>(|state| state.pool.encounter_slot()),
+        )
+}
+
 pub fn routers() -> ApiRouter<AppState> {
     use pokemonle_lib::model::{Ability, Language, Version, VersionGroup};
 
@@ -73,6 +98,7 @@ pub fn routers() -> ApiRouter<AppState> {
         )
         .merge(berry_routers())
         .merge(contest_routers())
+        .merge(encounter_routers())
         .nest("/game", game::routers())
         .nest(
             "/generations",
