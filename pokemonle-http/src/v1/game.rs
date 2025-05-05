@@ -44,7 +44,7 @@ async fn init_game(
 ) -> impl IntoApiResponse {
     match state
         .pool
-        .pokemon_handler()
+        .pokemon()
         .get_random_pokemon(&q.indices())
         .ok_or_else(|| return Error::ResourceNotFound(String::from("No pokemon found")))
         .and_then(|pm| {

@@ -19,13 +19,11 @@ pub fn routers() -> ApiRouter<AppState> {
         )
         .nest(
             "/pokemons",
-            api_routers::<Pokemon, _, _>(|state| state.pool.pokemon_handler()),
+            api_routers::<Pokemon, _, _>(|state| state.pool.pokemon()),
         )
         .nest(
             "/pokemon-species",
-            api_routers::<PokemonSpecieDetail, _, _>(|state| {
-                state.pool.pokemon_handler().specie_handler()
-            }),
+            api_routers::<PokemonSpecieDetail, _, _>(|state| state.pool.pokemon_specie()),
         )
 }
 
@@ -33,7 +31,7 @@ pub fn routers() -> ApiRouter<AppState> {
 ///
 /// 返回一个包含所有宝可梦标识符的数组
 async fn get_pokemon_identifiers(State(state): State<AppState>) -> Json<Vec<String>> {
-    let identifiers = state.pool.pokemon_handler().get_all_identifiers();
+    let identifiers = state.pool.pokemon().get_all_identifiers();
     Json(identifiers)
 }
 

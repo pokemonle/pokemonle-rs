@@ -25,15 +25,15 @@ fn item_routers() -> ApiRouter<AppState> {
     ApiRouter::new()
         .nest(
             "/items",
-            api_routers::<Item, _, _>(|state| state.pool.item_handler()),
+            api_routers::<Item, _, _>(|state| state.pool.item()),
         )
         .nest(
             "/item-categories",
-            api_routers::<ItemCategory, _, _>(|state| state.pool.item_handler().category_handler()),
+            api_routers::<ItemCategory, _, _>(|state| state.pool.item_category()),
         )
         .nest(
             "/item-pockets",
-            api_routers::<ItemPocket, _, _>(|state| state.pool.item_handler().pocket_handler()),
+            api_routers::<ItemPocket, _, _>(|state| state.pool.item_pocket()),
         )
 }
 
@@ -42,11 +42,11 @@ fn berry_routers() -> ApiRouter<AppState> {
     ApiRouter::new()
         .nest(
             "/berries",
-            api_routers::<Berry, _, _>(|state| state.pool.berry_handler()),
+            api_routers::<Berry, _, _>(|state| state.pool.berry()),
         )
         .nest(
             "/berry-firmness",
-            api_routers::<BerryFirmness, _, _>(|state| state.pool.berry_handler().firmness()),
+            api_routers::<BerryFirmness, _, _>(|state| state.pool.berry_firmness()),
         )
 }
 
@@ -55,11 +55,11 @@ fn contest_routers() -> ApiRouter<AppState> {
     ApiRouter::new()
         .nest(
             "/contest-effects",
-            api_routers::<ContestEffect, _, _>(|state| state.pool.contest_effect_handler()),
+            api_routers::<ContestEffect, _, _>(|state| state.pool.contest_effect()),
         )
         .nest(
             "/contest-types",
-            api_routers::<ContestType, _, _>(|state| state.pool.contest_type_handler()),
+            api_routers::<ContestType, _, _>(|state| state.pool.contest_type()),
         )
 }
 
@@ -69,31 +69,31 @@ pub fn routers() -> ApiRouter<AppState> {
     ApiRouter::new()
         .nest(
             "/abilities",
-            api_routers::<Ability, _, _>(|state| state.pool.ability_handler()),
+            api_routers::<Ability, _, _>(|state| state.pool.ability()),
         )
         .merge(berry_routers())
         .merge(contest_routers())
         .nest("/game", game::routers())
         .nest(
             "/generations",
-            api_routers::<Generation, _, _>(|state| state.pool.generation_handler()),
+            api_routers::<Generation, _, _>(|state| state.pool.generation()),
         )
         .merge(item_routers())
         .nest(
             "/languages",
-            api_routers::<Language, _, _>(|state| state.pool.language_handler()),
+            api_routers::<Language, _, _>(|state| state.pool.language()),
         )
         .merge(pokemon::routers())
         .nest(
             "/types",
-            api_routers::<Type, _, _>(|state| state.pool.type_handler()),
+            api_routers::<Type, _, _>(|state| state.pool.r#type()),
         )
         .nest(
             "/versions",
-            api_routers::<Version, _, _>(|state| state.pool.version_handler()),
+            api_routers::<Version, _, _>(|state| state.pool.version()),
         )
         .nest(
             "/version-groups",
-            api_routers::<VersionGroup, _, _>(|state| state.pool.version_group_handler()),
+            api_routers::<VersionGroup, _, _>(|state| state.pool.version_group()),
         )
 }

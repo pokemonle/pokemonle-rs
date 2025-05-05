@@ -1,16 +1,10 @@
-mod ability;
 mod berry;
 mod contest;
-mod generation;
 mod item;
-mod language;
 mod pokemon;
-mod r#type;
-mod version;
-mod version_group;
 
 use crate::config::Config;
-use crate::prelude::*;
+use crate::{impl_handlers, prelude::*};
 use diesel::migration::{MigrationVersion, Result as MigrationResult};
 use diesel::r2d2::{ConnectionManager, Pool};
 use diesel::{Connection, MultiConnection, PgConnection, QueryResult, SqliteConnection};
@@ -101,48 +95,95 @@ impl DatabaseClientPooled {
 
         Ok(DatabaseClientPooled { connection: pool })
     }
+}
 
-    pub fn language_handler(&self) -> language::LanguageHandler {
-        language::LanguageHandler::new(self.connection.clone())
-    }
+impl_handlers! {
+    ability: ability::AbilityHandler,
+    berry: berry::BerryHandler,
+    berry_firmness: berry::BerryFirmnessHandler,
+    contest_effect: contest::ContestEffectHandler,
+    contest_type: contest::ContestTypeHandler,
+    generation: generation::GenerationHandler,
+    item: item::ItemHandler,
+    item_category: item::ItemCategoryHandler,
+    item_pocket: item::ItemPocketHandler,
+    language: language::LanguageHandler,
+    pokemon: pokemon::PokemonHandler,
+    pokemon_specie: pokemon::PokemonSpecieHandler,
+    r#type: r#type::TypeHandler,
+    version: version::VersionHandler,
+    version_group: version_group::VersionGroupHandler,
+}
 
-    pub fn version_handler(&self) -> version::VersionHandler {
-        version::VersionHandler::new(self.connection.clone())
-    }
+mod ability {
+    use crate::impl_database_handler;
+    use crate::model::Ability;
 
-    pub fn version_group_handler(&self) -> version_group::VersionGroupHandler {
-        version_group::VersionGroupHandler::new(self.connection.clone())
-    }
+    use crate::database::schema::abilities;
+    impl_database_handler!(
+        AbilityHandler,
+        Ability,
+        abilities::dsl::abilities,
+        abilities::dsl::id
+    );
+}
 
-    pub fn ability_handler(&self) -> ability::AbilityHandler {
-        ability::AbilityHandler::new(self.connection.clone())
-    }
+mod generation {
+    use crate::database::schema::generations;
+    use crate::impl_database_handler;
+    use crate::model::Generation;
 
-    pub fn berry_handler(&self) -> berry::BerryHandler {
-        berry::BerryHandler::new(self.connection.clone())
-    }
+    impl_database_handler!(
+        GenerationHandler,
+        Generation,
+        generations::dsl::generations,
+        generations::dsl::id
+    );
+}
 
-    pub fn contest_effect_handler(&self) -> contest::ContestEffectHandler {
-        contest::ContestEffectHandler::new(self.connection.clone())
-    }
+mod language {
+    use crate::database::schema::languages;
+    use crate::impl_database_handler;
+    use crate::model::Language;
 
-    pub fn contest_type_handler(&self) -> contest::ContestTypeHandler {
-        contest::ContestTypeHandler::new(self.connection.clone())
-    }
+    impl_database_handler!(
+        LanguageHandler,
+        Language,
+        languages::dsl::languages,
+        languages::dsl::id
+    );
+}
 
-    pub fn generation_handler(&self) -> generation::GenerationHandler {
-        generation::GenerationHandler::new(self.connection.clone())
-    }
+mod r#type {
+    use crate::database::schema::types;
+    use crate::impl_database_handler;
+    use crate::model::Type;
 
-    pub fn item_handler(&self) -> item::ItemHandler {
-        item::ItemHandler::new(self.connection.clone())
-    }
+    impl_database_handler!(TypeHandler, Type, types::dsl::types, types::dsl::id);
+}
 
-    pub fn type_handler(&self) -> r#type::TypeHandler {
-        r#type::TypeHandler::new(self.connection.clone())
-    }
+mod version {
+    use crate::database::schema::versions;
+    use crate::impl_database_handler;
+    use crate::model::Version;
 
-    pub fn pokemon_handler(&self) -> pokemon::PokemonHandler {
-        pokemon::PokemonHandler::new(self.connection.clone())
-    }
+    impl_database_handler!(
+        VersionHandler,
+        Version,
+        versions::dsl::versions,
+        versions::dsl::id
+    );
+}
+
+mod version_group {
+    use crate::database::schema::version_groups;
+    use crate::impl_database_handler;
+    use crate::model::VersionGroup;
+
+    impl_database_handler!(
+        VersionGroupHandler,
+        VersionGroup,
+        version_groups::dsl::version_groups,
+        version_groups::dsl::id
+    );
 }

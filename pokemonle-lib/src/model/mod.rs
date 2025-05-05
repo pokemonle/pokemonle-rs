@@ -3,10 +3,12 @@ use aide::OperationIo;
 use diesel::prelude::*;
 
 mod berry;
+mod encounter;
 mod evo;
 mod item;
 mod pokemon;
 pub use berry::*;
+pub use encounter::*;
 pub use evo::*;
 pub use item::*;
 pub use pokemon::*;

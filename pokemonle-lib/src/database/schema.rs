@@ -54,6 +54,59 @@ diesel::table! {
 }
 
 diesel::table! {
+    encounter_condition_value_map (encounter_id, encounter_condition_value_id) {
+        encounter_id -> Integer,
+        encounter_condition_value_id -> Integer,
+    }
+}
+
+diesel::table! {
+    encounter_condition_values (id) {
+        id -> Integer,
+        encounter_condition_id -> Integer,
+        identifier -> Text,
+        is_default -> Bool,
+    }
+}
+
+diesel::table! {
+    encounter_conditions (id) {
+        id -> Integer,
+        identifier -> Text,
+    }
+}
+
+diesel::table! {
+    encounter_methods (id) {
+        id -> Integer,
+        identifier -> Text,
+        order -> Integer,
+    }
+}
+
+diesel::table! {
+    encounter_slots (id) {
+        id -> Integer,
+        version_group_id -> Integer,
+        encounter_method_id -> Integer,
+        slot -> Nullable<Integer>,
+        rarity -> Integer,
+    }
+}
+
+diesel::table! {
+    encounters (id) {
+        id -> Integer,
+        version_id -> Integer,
+        location_area_id -> Integer,
+        encounter_slot_id -> Integer,
+        pokemon_id -> Integer,
+        min_level -> Integer,
+        max_level -> Integer,
+    }
+}
+
+diesel::table! {
     evolution_chains (id) {
         id -> Integer,
         baby_trigger_item_id -> Nullable<Integer>,
@@ -131,6 +184,24 @@ diesel::table! {
         identifier -> Text,
         official -> Bool,
         order -> Integer,
+    }
+}
+
+diesel::table! {
+    location_area_encounter_rates (location_area_id, encounter_method_id, version_id) {
+        location_area_id -> Integer,
+        encounter_method_id -> Integer,
+        version_id -> Integer,
+        rate -> Integer,
+    }
+}
+
+diesel::table! {
+    location_areas (id) {
+        id -> Integer,
+        location_id -> Integer,
+        game_index -> Integer,
+        identifier -> Text,
     }
 }
 
@@ -302,10 +373,21 @@ diesel::table! {
 diesel::joinable!(abilities -> generations (generation_id));
 diesel::joinable!(berries -> berry_firmness (firmness_id));
 diesel::joinable!(berries -> types (natural_gift_type_id));
+diesel::joinable!(encounter_condition_value_map -> encounter_condition_values (encounter_condition_value_id));
+diesel::joinable!(encounter_condition_value_map -> encounters (encounter_id));
+diesel::joinable!(encounter_condition_values -> encounter_conditions (encounter_condition_id));
+diesel::joinable!(encounter_slots -> encounter_methods (encounter_method_id));
+diesel::joinable!(encounters -> encounter_slots (encounter_slot_id));
+diesel::joinable!(encounters -> location_areas (location_area_id));
+diesel::joinable!(encounters -> pokemon (pokemon_id));
+diesel::joinable!(encounters -> versions (version_id));
 diesel::joinable!(evolution_chains -> items (baby_trigger_item_id));
 diesel::joinable!(item_categories -> item_pockets (pocket_id));
 diesel::joinable!(items -> item_categories (category_id));
 diesel::joinable!(items -> item_fling_effects (fling_effect_id));
+diesel::joinable!(location_area_encounter_rates -> encounter_methods (encounter_method_id));
+diesel::joinable!(location_area_encounter_rates -> location_areas (location_area_id));
+diesel::joinable!(location_area_encounter_rates -> versions (version_id));
 diesel::joinable!(locations -> regions (region_id));
 diesel::joinable!(pokemon -> pokemon_species (species_id));
 diesel::joinable!(pokemon_abilities -> abilities (ability_id));
@@ -336,6 +418,12 @@ diesel::allow_tables_to_appear_in_same_query!(
     contest_effects,
     contest_types,
     egg_groups,
+    encounter_condition_value_map,
+    encounter_condition_values,
+    encounter_conditions,
+    encounter_methods,
+    encounter_slots,
+    encounters,
     evolution_chains,
     evolution_triggers,
     genders,
@@ -346,6 +434,8 @@ diesel::allow_tables_to_appear_in_same_query!(
     item_pockets,
     items,
     languages,
+    location_area_encounter_rates,
+    location_areas,
     locations,
     move_damage_classes,
     pokemon,
