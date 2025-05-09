@@ -105,6 +105,18 @@ fn location_routers() -> ApiRouter<AppState> {
         )
 }
 
+fn move_routers() -> ApiRouter<AppState> {
+    use pokemonle_lib::model::Move;
+    ApiRouter::new().nest(
+        "/moves",
+        api_routers::<Move, _, _>(|state| state.pool.r#move()),
+    )
+    // .nest(
+    //     "/move-targets",
+    //     api_routers::<MoveTarget, _, _>(|state| state.pool.move_target()),
+    // )
+}
+
 pub fn routers() -> ApiRouter<AppState> {
     use pokemonle_lib::model::{Ability, Language, Pokedex, Version, VersionGroup};
 
@@ -127,6 +139,7 @@ pub fn routers() -> ApiRouter<AppState> {
             api_routers::<Language, _, _>(|state| state.pool.language()),
         )
         .merge(location_routers())
+        .merge(move_routers())
         .nest(
             "/pokedexes",
             api_routers::<Pokedex, _, _>(|state| state.pool.pokedex()),

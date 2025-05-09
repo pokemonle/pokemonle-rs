@@ -7,7 +7,9 @@ mod encounter;
 mod evo;
 mod item;
 mod location;
+mod r#move;
 mod pokemon;
+
 pub use berry::*;
 pub use encounter::*;
 pub use evo::*;
@@ -15,6 +17,7 @@ pub use item::*;
 pub use location::*;
 pub use pokemon::*;
 use pokemonle_trait::StructName;
+pub use r#move::*;
 use schemars::JsonSchema;
 use serde::Serialize;
 

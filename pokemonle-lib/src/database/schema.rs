@@ -221,6 +221,38 @@ diesel::table! {
 }
 
 diesel::table! {
+    move_effects (id) {
+        id -> Integer,
+    }
+}
+
+diesel::table! {
+    move_targets (id) {
+        id -> Integer,
+        identifier -> Text,
+    }
+}
+
+diesel::table! {
+    moves (id) {
+        id -> Integer,
+        identifier -> Text,
+        generation_id -> Integer,
+        type_id -> Nullable<Integer>,
+        power -> Nullable<Integer>,
+        pp -> Nullable<Integer>,
+        accuracy -> Nullable<Integer>,
+        priority -> Integer,
+        target_id -> Integer,
+        damage_class_id -> Integer,
+        effect_id -> Nullable<Integer>,
+        effect_chance -> Nullable<Integer>,
+        contest_type_id -> Nullable<Integer>,
+        contest_effect_id -> Nullable<Integer>,
+    }
+}
+
+diesel::table! {
     pokedex_version_groups (pokedex_id, version_group_id) {
         pokedex_id -> Integer,
         version_group_id -> Integer,
@@ -406,6 +438,9 @@ diesel::joinable!(location_area_encounter_rates -> location_areas (location_area
 diesel::joinable!(location_area_encounter_rates -> versions (version_id));
 diesel::joinable!(location_areas -> locations (location_id));
 diesel::joinable!(locations -> regions (region_id));
+diesel::joinable!(moves -> move_damage_classes (damage_class_id));
+diesel::joinable!(moves -> move_effects (effect_id));
+diesel::joinable!(moves -> move_targets (target_id));
 diesel::joinable!(pokedex_version_groups -> pokedexes (pokedex_id));
 diesel::joinable!(pokedex_version_groups -> version_groups (version_group_id));
 diesel::joinable!(pokedexes -> regions (region_id));
@@ -458,6 +493,9 @@ diesel::allow_tables_to_appear_in_same_query!(
     location_areas,
     locations,
     move_damage_classes,
+    move_effects,
+    move_targets,
+    moves,
     pokedex_version_groups,
     pokedexes,
     pokemon,

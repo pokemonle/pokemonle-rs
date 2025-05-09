@@ -113,6 +113,7 @@ impl_handlers! {
     generation: generation::GenerationHandler,
     location: location::LocationHandler,
     location_area: location::LocationAreaHandler,
+    r#move: r#move::MoveHandler,
     region: location::RegionHandler,
     item: item::ItemHandler,
     item_category: item::ItemCategoryHandler,
@@ -210,4 +211,12 @@ mod version_group {
         version_groups::dsl::version_groups,
         version_groups::dsl::id
     );
+}
+
+mod r#move {
+    use crate::database::schema::moves;
+    use crate::impl_database_handler;
+    use crate::model::Move;
+
+    impl_database_handler!(MoveHandler, Move, moves::dsl::moves, moves::dsl::id);
 }
