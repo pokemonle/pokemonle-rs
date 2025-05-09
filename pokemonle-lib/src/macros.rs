@@ -127,6 +127,7 @@ macro_rules! impl_database_locale_handler {
                 &self,
                 pagination: $crate::database::pagination::Paginated,
                 locale_id: i32,
+                query: Option<String>,
             ) -> $crate::database::pagination::PaginatedResource<(Self::Resource, String)> {
                 use diesel::dsl::count_star;
                 use diesel::prelude::*;
@@ -137,32 +138,63 @@ macro_rules! impl_database_locale_handler {
                     .get()
                     .expect("Failed to get DB connection from pool");
 
-                // Count total items
-                let total_items_query = $table.select(count_star());
-                let total_items = total_items_query
-                    .first::<i64>(&mut conn)
-                    .expect(&format!("Error counting {}", resource_name));
+                if let Some(query) = query {
+                    let total_items_query = $table
+                        .inner_join($names_table.on($id_column.eq($names_id_column)))
+                        .filter($names_language_column.eq(locale_id))
+                        .filter($names_name_column.like(format!("%{}%", query)))
+                        .select(count_star());
+                    let total_items = total_items_query
+                        .first::<i64>(&mut conn)
+                        .expect(&format!("Error counting {}", resource_name));
 
-                let total_pages = pagination.pages(total_items);
+                    let total_pages = pagination.pages(total_items);
 
-                // Join with names table to get localized names
-                let items_query = $table
-                    .inner_join($names_table.on($id_column.eq($names_id_column)))
-                    .filter($names_language_column.eq(locale_id))
-                    .select((<$resource>::as_select(), $names_name_column))
-                    .limit(pagination.limit())
-                    .offset(pagination.offset());
+                    let items = $table
+                        .inner_join($names_table.on($id_column.eq($names_id_column)))
+                        .filter($names_language_column.eq(locale_id))
+                        .filter($names_name_column.like(format!("%{}%", query)))
+                        .select((<$resource>::as_select(), $names_name_column))
+                        .limit(pagination.limit())
+                        .offset(pagination.offset())
+                        .load::<(Self::Resource, String)>(&mut conn)
+                        .expect(&format!("Error loading {} with locale", resource_name));
 
-                let items = items_query
-                    .load::<(Self::Resource, String)>(&mut conn)
-                    .expect(&format!("Error loading {} with locale", resource_name));
+                    $crate::database::pagination::PaginatedResource {
+                        data: items,
+                        total_pages,
+                        total_items,
+                        page: pagination.page,
+                        per_page: pagination.per_page,
+                    }
+                } else {
+                    // Count total items
+                    let total_items_query = $table.select(count_star());
+                    let total_items = total_items_query
+                        .first::<i64>(&mut conn)
+                        .expect(&format!("Error counting {}", resource_name));
 
-                $crate::database::pagination::PaginatedResource {
-                    data: items,
-                    total_pages,
-                    total_items,
-                    page: pagination.page,
-                    per_page: pagination.per_page,
+                    let total_pages = pagination.pages(total_items);
+
+                    // Join with names table to get localized names
+                    let items_query = $table
+                        .inner_join($names_table.on($id_column.eq($names_id_column)))
+                        .filter($names_language_column.eq(locale_id))
+                        .select((<$resource>::as_select(), $names_name_column))
+                        .limit(pagination.limit())
+                        .offset(pagination.offset());
+
+                    let items = items_query
+                        .load::<(Self::Resource, String)>(&mut conn)
+                        .expect(&format!("Error loading {} with locale", resource_name));
+
+                    $crate::database::pagination::PaginatedResource {
+                        data: items,
+                        total_pages,
+                        total_items,
+                        page: pagination.page,
+                        per_page: pagination.per_page,
+                    }
                 }
             }
 

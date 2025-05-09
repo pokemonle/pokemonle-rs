@@ -19,7 +19,7 @@ pub use pokemon::*;
 use pokemonle_trait::StructName;
 pub use r#move::*;
 use schemars::JsonSchema;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::generations)]
@@ -183,10 +183,16 @@ pub struct PokedexVersionGroup {
     pub version_group_id: i32,
 }
 
-#[derive(OperationIo, Serialize, JsonSchema, Clone)]
+#[derive(OperationIo, Serialize, Deserialize, JsonSchema, Clone)]
 pub struct Languaged<T: StructName + Serialize> {
     #[serde(flatten)]
     pub item: T,
     pub name: String,
-    pub description: String,
+    // pub description: String,
+}
+
+impl<T: StructName + Serialize> StructName for Languaged<T> {
+    fn struct_name() -> &'static str {
+        T::struct_name()
+    }
 }

@@ -283,6 +283,14 @@ diesel::table! {
 }
 
 diesel::table! {
+    move_names (move_id, local_language_id) {
+        move_id -> Integer,
+        local_language_id -> Integer,
+        name -> Text,
+    }
+}
+
+diesel::table! {
     move_targets (id) {
         id -> Integer,
         identifier -> Text,
@@ -545,6 +553,8 @@ diesel::joinable!(location_areas -> locations (location_id));
 diesel::joinable!(location_names -> languages (local_language_id));
 diesel::joinable!(location_names -> locations (location_id));
 diesel::joinable!(locations -> regions (region_id));
+diesel::joinable!(move_names -> languages (local_language_id));
+diesel::joinable!(move_names -> moves (move_id));
 diesel::joinable!(moves -> move_damage_classes (damage_class_id));
 diesel::joinable!(moves -> move_effects (effect_id));
 diesel::joinable!(moves -> move_targets (target_id));
@@ -618,6 +628,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     locations,
     move_damage_classes,
     move_effects,
+    move_names,
     move_targets,
     moves,
     pokedex_version_groups,

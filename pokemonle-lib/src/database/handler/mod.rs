@@ -61,6 +61,7 @@ pub trait DatabaseHandlerWithLocale {
         &self,
         pagination: super::pagination::Paginated,
         locale_id: i32,
+        query: Option<String>,
     ) -> PaginatedResource<(Self::Resource, String)>;
     fn get_resource_by_id_with_locale(
         &self,
@@ -142,22 +143,33 @@ impl_handlers! {
 }
 
 mod ability {
-    use crate::impl_database_handler;
     use crate::model::Ability;
+    use crate::{impl_database_handler, impl_database_locale_handler};
 
-    use crate::database::schema::abilities;
+    use crate::database::schema::{abilities, ability_names};
     impl_database_handler!(
         AbilityHandler,
         Ability,
         abilities::dsl::abilities,
         abilities::dsl::id
     );
+
+    impl_database_locale_handler!(
+        AbilityHandler,
+        Ability,
+        abilities::dsl::abilities,
+        abilities::dsl::id,
+        ability_names::dsl::ability_names,
+        ability_names::dsl::ability_id,
+        ability_names::dsl::name,
+        ability_names::dsl::local_language_id
+    );
 }
 
 mod generation {
-    use crate::database::schema::generations;
-    use crate::impl_database_handler;
+    use crate::database::schema::{generation_names, generations};
     use crate::model::Generation;
+    use crate::{impl_database_handler, impl_database_locale_handler};
 
     impl_database_handler!(
         GenerationHandler,
@@ -165,18 +177,40 @@ mod generation {
         generations::dsl::generations,
         generations::dsl::id
     );
+
+    impl_database_locale_handler!(
+        GenerationHandler,
+        Generation,
+        generations::dsl::generations,
+        generations::dsl::id,
+        generation_names::dsl::generation_names,
+        generation_names::dsl::generation_id,
+        generation_names::dsl::name,
+        generation_names::dsl::local_language_id
+    );
 }
 
 mod language {
-    use crate::database::schema::languages;
-    use crate::impl_database_handler;
+    use crate::database::schema::{language_names, languages};
     use crate::model::Language;
+    use crate::{impl_database_handler, impl_database_locale_handler};
 
     impl_database_handler!(
         LanguageHandler,
         Language,
         languages::dsl::languages,
         languages::dsl::id
+    );
+
+    impl_database_locale_handler!(
+        LanguageHandler,
+        Language,
+        languages::dsl::languages,
+        languages::dsl::id,
+        language_names::dsl::language_names,
+        language_names::dsl::language_id,
+        language_names::dsl::name,
+        language_names::dsl::local_language_id
     );
 }
 
@@ -194,23 +228,45 @@ mod pokedex {
 }
 
 mod r#type {
-    use crate::database::schema::types;
-    use crate::impl_database_handler;
+    use crate::database::schema::{type_names, types};
     use crate::model::Type;
+    use crate::{impl_database_handler, impl_database_locale_handler};
 
     impl_database_handler!(TypeHandler, Type, types::dsl::types, types::dsl::id);
+
+    impl_database_locale_handler!(
+        TypeHandler,
+        Type,
+        types::dsl::types,
+        types::dsl::id,
+        type_names::dsl::type_names,
+        type_names::dsl::type_id,
+        type_names::dsl::name,
+        type_names::dsl::local_language_id
+    );
 }
 
 mod version {
-    use crate::database::schema::versions;
-    use crate::impl_database_handler;
+    use crate::database::schema::{version_names, versions};
     use crate::model::Version;
+    use crate::{impl_database_handler, impl_database_locale_handler};
 
     impl_database_handler!(
         VersionHandler,
         Version,
         versions::dsl::versions,
         versions::dsl::id
+    );
+
+    impl_database_locale_handler!(
+        VersionHandler,
+        Version,
+        versions::dsl::versions,
+        versions::dsl::id,
+        version_names::dsl::version_names,
+        version_names::dsl::version_id,
+        version_names::dsl::name,
+        version_names::dsl::local_language_id
     );
 }
 
@@ -228,9 +284,20 @@ mod version_group {
 }
 
 mod r#move {
-    use crate::database::schema::moves;
-    use crate::impl_database_handler;
+    use crate::database::schema::{move_names, moves};
     use crate::model::Move;
+    use crate::{impl_database_handler, impl_database_locale_handler};
 
     impl_database_handler!(MoveHandler, Move, moves::dsl::moves, moves::dsl::id);
+
+    impl_database_locale_handler!(
+        MoveHandler,
+        Move,
+        moves::dsl::moves,
+        moves::dsl::id,
+        move_names::dsl::move_names,
+        move_names::dsl::move_id,
+        move_names::dsl::name,
+        move_names::dsl::local_language_id
+    );
 }

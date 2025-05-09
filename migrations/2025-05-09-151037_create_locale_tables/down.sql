@@ -11,3 +11,4 @@ DROP TABLE IF EXISTS region_names;
 DROP TABLE IF EXISTS type_names;
 DROP TABLE IF EXISTS pokemon_color_names;
 DROP TABLE IF EXISTS version_names;
+DROP TABLE IF EXISTS move_names;

@@ -1,4 +1,6 @@
 mod game;
+mod language;
+mod openapi;
 mod pokemon;
 mod resource;
 mod response;
@@ -13,11 +15,18 @@ use pokemonle_lib::{
     model::{Generation, Type},
 };
 use resource::api_routers;
+use schemars::JsonSchema;
+use serde::Deserialize;
 
 #[derive(Clone)]
 pub struct AppState {
     pub pool: DatabaseClientPooled,
     pub crypto: Arc<dyn Crypto>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+struct Resource {
+    id: i32,
 }
 
 fn item_routers() -> ApiRouter<AppState> {
@@ -138,6 +147,7 @@ pub fn routers() -> ApiRouter<AppState> {
             "/languages",
             api_routers::<Language, _, _>(|state| state.pool.language()),
         )
+        .merge(language::routers())
         .merge(location_routers())
         .merge(move_routers())
         .nest(

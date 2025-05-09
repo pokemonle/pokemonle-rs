@@ -40,7 +40,7 @@ where
     F: Fn(AppState) -> H + Clone + Copy + Send + Sync + 'static,
     O: FnOnce(TransformOperation) -> TransformOperation + Clone + Copy,
 {
-    use super::response::{get_item_by_id_docs, list_items_docs};
+    use super::openapi::{get_item_by_id_docs, list_items_docs};
 
     async fn list<T, H>(
         State(state): State<AppState>,
