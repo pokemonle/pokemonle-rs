@@ -18,7 +18,7 @@ pub fn routers() -> ApiRouter<AppState> {
             get_with(get_pokemon_identifiers, get_pokemon_identifiers_docs),
         )
         .nest(
-            "/pokemons",
+            "/pokemon",
             api_routers::<Pokemon, _, _>(|state| state.pool.pokemon()),
         )
         .nest(
