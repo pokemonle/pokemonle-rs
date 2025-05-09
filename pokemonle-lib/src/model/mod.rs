@@ -182,3 +182,11 @@ pub struct PokedexVersionGroup {
     pub pokedex_id: i32,
     pub version_group_id: i32,
 }
+
+#[derive(OperationIo, Serialize, JsonSchema, Clone)]
+pub struct Languaged<T: StructName + Serialize> {
+    #[serde(flatten)]
+    pub item: T,
+    pub name: String,
+    pub description: String,
+}

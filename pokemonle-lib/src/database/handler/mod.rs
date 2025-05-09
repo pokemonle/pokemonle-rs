@@ -55,6 +55,20 @@ pub trait DatabaseHandler {
     fn get_resource_by_id(&self, resource_id: i32) -> Option<Self::Resource>;
 }
 
+pub trait DatabaseHandlerWithLocale {
+    type Resource;
+    fn get_all_resources_with_locale(
+        &self,
+        pagination: super::pagination::Paginated,
+        locale_id: i32,
+    ) -> PaginatedResource<(Self::Resource, String)>;
+    fn get_resource_by_id_with_locale(
+        &self,
+        resource_id: i32,
+        locale_id: i32,
+    ) -> Option<(Self::Resource, String)>;
+}
+
 #[derive(Clone)]
 pub struct DatabaseClientPooled {
     connection: Pool<ConnectionManager<DatabaseConnection>>,

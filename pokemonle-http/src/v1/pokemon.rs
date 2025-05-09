@@ -3,14 +3,13 @@ use aide::axum::ApiRouter;
 use aide::transform::TransformOperation;
 use axum::extract::State;
 use axum::Json;
-use pokemonle_lib::model::PokemonSpecieDetail;
 
 use crate::v1::resource::api_routers;
 
 use super::AppState;
 
 pub fn routers() -> ApiRouter<AppState> {
-    use pokemonle_lib::model::Pokemon;
+    use pokemonle_lib::model::{Pokemon, PokemonSpecies};
 
     ApiRouter::new()
         .api_route(
@@ -23,7 +22,7 @@ pub fn routers() -> ApiRouter<AppState> {
         )
         .nest(
             "/pokemon-species",
-            api_routers::<PokemonSpecieDetail, _, _>(|state| state.pool.pokemon_specie()),
+            api_routers::<PokemonSpecies, _, _>(|state| state.pool.pokemon_specie()),
         )
 }
 
