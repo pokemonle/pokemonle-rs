@@ -105,7 +105,14 @@ where
         let struct_name = T::struct_name();
 
         match handler.get_resource_by_id_with_locale(resource.id, lang) {
-            Some(resource) => (StatusCode::OK, Json(resource)).into_response(),
+            Some(resource) => (
+                StatusCode::OK,
+                Json(Languaged {
+                    item: resource.0,
+                    name: resource.1,
+                }),
+            )
+                .into_response(),
             None => {
                 let err = Error::ResourceNotFound(format!(
                     "{} with id {} not found",
