@@ -7,12 +7,17 @@ mod response;
 
 use std::sync::Arc;
 
-use aide::axum::ApiRouter;
+use aide::axum::{routing::get_with, ApiRouter, IntoApiResponse};
 
+use axum::{
+    extract::{Path, State},
+    http::StatusCode,
+    Json,
+};
 use pokemonle_lib::{
     crypto::Crypto,
-    database::handler::DatabaseClientPooled,
-    model::{Generation, Type},
+    database::{handler::DatabaseClientPooled, pagination::PaginatedResource},
+    model::{Generation, Pokemon, Type},
 };
 use resource::api_routers;
 use schemars::JsonSchema;
@@ -126,13 +131,31 @@ fn move_routers() -> ApiRouter<AppState> {
     // )
 }
 
+async fn get_ablitity_pokemons(
+    State(state): State<AppState>,
+    Path(Resource { id }): Path<Resource>,
+) -> impl IntoApiResponse {
+    let pokemons = state.pool.pokemon().list_by_ability(id);
+    (StatusCode::OK, Json(pokemons))
+}
+
 pub fn routers() -> ApiRouter<AppState> {
     use pokemonle_lib::model::{Ability, Language, Pokedex, Version, VersionGroup};
 
     ApiRouter::new()
         .nest(
             "/abilities",
-            api_routers::<Ability, _, _>(|state| state.pool.ability()),
+            api_routers::<Ability, _, _>(|state| state.pool.ability()).api_route(
+                "/{id}/pokemons",
+                get_with(get_ablitity_pokemons, |op| {
+                    op.tag("ability")
+                        .tag("pokemon")
+                        .description("Get a list of pokemons by ability")
+                        .response_with::<200, Json<PaginatedResource<Pokemon>>, _>(|o| {
+                            o.description("example")
+                        })
+                }),
+            ),
         )
         .merge(berry_routers())
         .merge(contest_routers())

@@ -1,3 +1,4 @@
+use crate::database::pagination::PaginatedResource;
 use crate::database::schema::pokemon_species_names;
 use crate::database::schema::{pokemon, pokemon_species};
 use crate::model::{Pokemon, PokemonSpecies};
@@ -35,6 +36,21 @@ impl PokemonHandler {
             .first::<PokemonSpecies>(&mut self.connection.get().unwrap())
             .ok()
     }
+    // list pokemons from pokemon_abilities table with given ability_id
+    pub fn list_by_ability(&self, _ability_id: i32) -> PaginatedResource<Pokemon> {
+        use crate::database::schema::pokemon;
+        use crate::database::schema::pokemon_abilities::dsl::*;
+        use diesel::prelude::*;
+        // select * from pokemon where id in (select pokemon_id from pokemon_abilities where ability_id = ability_id)
+        let query = pokemon_abilities
+            .select(pokemon_id)
+            .filter(ability_id.eq(_ability_id));
+        let pokemons = pokemon::table
+            .filter(pokemon::id.eq_any(query))
+            .load::<Pokemon>(&mut self.connection.get().unwrap())
+            .expect("Error loading pokemons");
+        PaginatedResource::new_from_vec(pokemons)
+    }
 }
 
 impl_database_handler!(
@@ -42,6 +58,17 @@ impl_database_handler!(
     PokemonSpecies,
     pokemon_species::dsl::pokemon_species,
     pokemon_species::dsl::id
+);
+
+impl_database_locale_handler!(
+    PokemonHandler,
+    Pokemon,
+    pokemon::dsl::pokemon,
+    pokemon::dsl::id,
+    pokemon_species_names::dsl::pokemon_species_names,
+    pokemon_species_names::dsl::pokemon_species_id,
+    pokemon_species_names::dsl::name,
+    pokemon_species_names::dsl::local_language_id
 );
 
 impl_database_locale_handler!(

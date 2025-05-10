@@ -145,7 +145,8 @@ where
 
 pub fn routers() -> ApiRouter<AppState> {
     use pokemonle_lib::model::{
-        Ability, Generation, Item, ItemPocket, Language, Move, PokemonSpecies, Type, Version,
+        Ability, Generation, Item, ItemPocket, Language, Move, Pokemon, PokemonSpecies, Type,
+        Version,
     };
 
     let sub_routers = ApiRouter::new()
@@ -172,6 +173,10 @@ pub fn routers() -> ApiRouter<AppState> {
         .nest(
             "/moves",
             api_routers::<Move, _, _>(|state| state.pool.r#move()),
+        )
+        .nest(
+            "/pokemon",
+            api_routers::<Pokemon, _, _>(|state| state.pool.pokemon()),
         )
         .nest(
             "/pokemon_species",

@@ -59,3 +59,26 @@ pub struct PaginatedResource<T> {
     // Total number of items
     pub total_items: i64,
 }
+
+impl<T> PaginatedResource<T> {
+    pub fn new(data: Vec<T>, page: i64, per_page: i64, total_pages: i64, total_items: i64) -> Self {
+        PaginatedResource {
+            data,
+            page,
+            per_page,
+            total_pages,
+            total_items,
+        }
+    }
+
+    pub fn new_from_vec(data: Vec<T>) -> Self {
+        let length = data.len() as i64;
+        PaginatedResource {
+            data,
+            page: 1,
+            per_page: length,
+            total_pages: 1,
+            total_items: length,
+        }
+    }
+}
