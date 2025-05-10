@@ -205,4 +205,8 @@ impl<T: StructName + Serialize> StructName for Languaged<T> {
     fn struct_name() -> &'static str {
         T::struct_name()
     }
+
+    fn tags() -> &'static [&'static str] {
+        T::tags()
+    }
 }
