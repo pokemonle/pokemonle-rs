@@ -183,7 +183,7 @@ pub fn routers() -> ApiRouter<AppState> {
         "/local-languages",
         get_with(get_local_lanuages, |op| {
             op.tag("language")
-                .response_with::<200, Json<Vec<LanguageName>>, _>(|o| {
+                .response_with::<200, Json<PaginatedResource<LanguageName>>, _>(|o| {
                     o.description("Get all local languages")
                 })
         }),
