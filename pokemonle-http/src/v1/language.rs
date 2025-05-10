@@ -123,7 +123,7 @@ where
                 move |(state, lang, pagination, search)| {
                     list::<T, H>(state, lang, pagination, search, handler_fn)
                 },
-                move |op| transform(list_items_docs::<T>(op)),
+                move |op| transform(list_items_docs::<T>(op).tag("language")),
             ),
         )
         .api_route(
@@ -131,7 +131,7 @@ where
             get_with(
                 move |(state, lang, id)| get::<T, H>(state, lang, id, handler_fn),
                 // get_item_by_id_docs with transform
-                move |op| transform(get_item_by_id_docs::<T>(op)),
+                move |op| transform(get_item_by_id_docs::<T>(op).tag("language")),
             ),
         )
 }
