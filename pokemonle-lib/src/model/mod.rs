@@ -45,6 +45,16 @@ pub struct Language {
 }
 
 #[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
+#[diesel(table_name = schema::language_names)]
+#[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
+#[pokemonle(tags = ["language"])]
+pub struct LanguageName {
+    pub language_id: i32,
+    pub local_language_id: i32,
+    pub name: String,
+}
+
+#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::version_groups)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
 #[pokemonle(tags = ["version", "version-group"])]

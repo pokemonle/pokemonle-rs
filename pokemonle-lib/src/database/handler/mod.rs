@@ -2,6 +2,7 @@ mod berry;
 mod contest;
 mod encounter;
 mod item;
+mod language;
 mod location;
 mod pokemon;
 
@@ -187,30 +188,6 @@ mod generation {
         generation_names::dsl::generation_id,
         generation_names::dsl::name,
         generation_names::dsl::local_language_id
-    );
-}
-
-mod language {
-    use crate::database::schema::{language_names, languages};
-    use crate::model::Language;
-    use crate::{impl_database_handler, impl_database_locale_handler};
-
-    impl_database_handler!(
-        LanguageHandler,
-        Language,
-        languages::dsl::languages,
-        languages::dsl::id
-    );
-
-    impl_database_locale_handler!(
-        LanguageHandler,
-        Language,
-        languages::dsl::languages,
-        languages::dsl::id,
-        language_names::dsl::language_names,
-        language_names::dsl::language_id,
-        language_names::dsl::name,
-        language_names::dsl::local_language_id
     );
 }
 
