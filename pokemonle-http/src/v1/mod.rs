@@ -6,12 +6,13 @@ mod resource;
 mod response;
 mod router;
 
+use router::Language;
 use std::sync::Arc;
 
 use aide::axum::{routing::get_with, ApiRouter, IntoApiResponse};
 
 use axum::{
-    extract::{Path, State},
+    extract::{Path, Query, State},
     http::StatusCode,
     Json,
 };
@@ -135,8 +136,9 @@ fn move_routers() -> ApiRouter<AppState> {
 async fn get_ablitity_pokemons(
     State(state): State<AppState>,
     Path(Resource { id }): Path<Resource>,
+    Query(Language { lang }): Query<Language>,
 ) -> impl IntoApiResponse {
-    let pokemons = state.pool.pokemon().list_by_ability(id);
+    let pokemons = state.pool.pokemon().list_by_ability(id, lang);
     (StatusCode::OK, Json(pokemons))
 }
 

@@ -1,7 +1,7 @@
 use crate::database::pagination::PaginatedResource;
 use crate::database::schema::pokemon_species_names;
 use crate::database::schema::{pokemon, pokemon_species};
-use crate::model::{Pokemon, PokemonSpecies};
+use crate::model::{Languaged, Pokemon, PokemonSpecies};
 use crate::{impl_database_handler, impl_database_locale_handler};
 
 impl_database_handler!(
@@ -37,9 +37,14 @@ impl PokemonHandler {
             .ok()
     }
     // list pokemons from pokemon_abilities table with given ability_id
-    pub fn list_by_ability(&self, _ability_id: i32) -> PaginatedResource<Pokemon> {
+    pub fn list_by_ability(
+        &self,
+        _ability_id: i32,
+        _lang: i32,
+    ) -> PaginatedResource<Languaged<Pokemon>> {
         use crate::database::schema::pokemon;
         use crate::database::schema::pokemon_abilities::dsl::*;
+        use crate::database::schema::pokemon_species_names;
         use diesel::prelude::*;
         // select * from pokemon where id in (select pokemon_id from pokemon_abilities where ability_id = ability_id)
         let query = pokemon_abilities
@@ -47,9 +52,20 @@ impl PokemonHandler {
             .filter(ability_id.eq(_ability_id));
         let pokemons = pokemon::table
             .filter(pokemon::id.eq_any(query))
-            .load::<Pokemon>(&mut self.connection.get().unwrap())
+            .inner_join(
+                pokemon_species_names::table
+                    .on(pokemon::id.eq(pokemon_species_names::pokemon_species_id)),
+            )
+            .filter(pokemon_species_names::local_language_id.eq(_lang))
+            .select((Pokemon::as_select(), pokemon_species_names::name))
+            .load::<(Pokemon, String)>(&mut self.connection.get().unwrap())
             .expect("Error loading pokemons");
-        PaginatedResource::new_from_vec(pokemons)
+        PaginatedResource::new_from_vec(
+            pokemons
+                .into_iter()
+                .map(|(p, n)| Languaged { item: p, name: n })
+                .collect(),
+        )
     }
 }
 

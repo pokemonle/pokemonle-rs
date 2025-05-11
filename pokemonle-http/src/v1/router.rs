@@ -30,9 +30,9 @@ fn default_language() -> i32 {
 }
 
 #[derive(Deserialize, JsonSchema)]
-struct Language {
+pub struct Language {
     #[serde(default = "default_language")]
-    lang: i32,
+    pub lang: i32,
 }
 
 impl Default for Language {
