@@ -181,11 +181,11 @@ pub fn routers() -> ApiRouter<AppState> {
         .merge(pokemon::routers())
         .nest(
             "/types",
-            api_routers::<Type, _, _>(|state| state.pool.r#type()),
+            api_languaged_routers::<Type, _, _>(|state| state.pool.r#type()),
         )
         .nest(
             "/versions",
-            api_routers::<Version, _, _>(|state| state.pool.version()),
+            api_languaged_routers::<Version, _, _>(|state| state.pool.version()),
         )
         .nest(
             "/version-groups",
