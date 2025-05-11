@@ -4,6 +4,7 @@ mod openapi;
 mod pokemon;
 mod resource;
 mod response;
+mod router;
 
 use std::sync::Arc;
 
@@ -19,7 +20,7 @@ use pokemonle_lib::{
     database::{handler::DatabaseClientPooled, pagination::PaginatedResource},
     model::{Generation, Pokemon, Type},
 };
-use resource::api_routers;
+use router::{api_languaged_routers, api_routers};
 use schemars::JsonSchema;
 use serde::Deserialize;
 
@@ -39,7 +40,7 @@ fn item_routers() -> ApiRouter<AppState> {
     ApiRouter::new()
         .nest(
             "/items",
-            api_routers::<Item, _, _>(|state| state.pool.item()),
+            api_languaged_routers::<Item, _, _>(|state| state.pool.item()),
         )
         .nest(
             "/item-categories",
@@ -47,7 +48,7 @@ fn item_routers() -> ApiRouter<AppState> {
         )
         .nest(
             "/item-pockets",
-            api_routers::<ItemPocket, _, _>(|state| state.pool.item_pocket()),
+            api_languaged_routers::<ItemPocket, _, _>(|state| state.pool.item_pocket()),
         )
 }
 
@@ -107,7 +108,7 @@ fn location_routers() -> ApiRouter<AppState> {
     ApiRouter::new()
         .nest(
             "/locations",
-            api_routers::<Location, _, _>(|state| state.pool.location()),
+            api_languaged_routers::<Location, _, _>(|state| state.pool.location()),
         )
         .nest(
             "/location-areas",
@@ -123,7 +124,7 @@ fn move_routers() -> ApiRouter<AppState> {
     use pokemonle_lib::model::Move;
     ApiRouter::new().nest(
         "/moves",
-        api_routers::<Move, _, _>(|state| state.pool.r#move()),
+        api_languaged_routers::<Move, _, _>(|state| state.pool.r#move()),
     )
     // .nest(
     //     "/move-targets",
@@ -145,7 +146,7 @@ pub fn routers() -> ApiRouter<AppState> {
     ApiRouter::new()
         .nest(
             "/abilities",
-            api_routers::<Ability, _, _>(|state| state.pool.ability()).api_route(
+            api_languaged_routers::<Ability, _, _>(|state| state.pool.ability()).api_route(
                 "/{id}/pokemons",
                 get_with(get_ablitity_pokemons, |op| {
                     op.tag("ability")

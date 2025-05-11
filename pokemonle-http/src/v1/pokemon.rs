@@ -4,7 +4,7 @@ use aide::transform::TransformOperation;
 use axum::extract::State;
 use axum::Json;
 
-use crate::v1::resource::api_routers;
+use crate::v1::router::api_languaged_routers;
 
 use super::AppState;
 
@@ -18,11 +18,11 @@ pub fn routers() -> ApiRouter<AppState> {
         )
         .nest(
             "/pokemon",
-            api_routers::<Pokemon, _, _>(|state| state.pool.pokemon()),
+            api_languaged_routers::<Pokemon, _, _>(|state| state.pool.pokemon()),
         )
         .nest(
             "/pokemon-species",
-            api_routers::<PokemonSpecies, _, _>(|state| state.pool.pokemon_specie()),
+            api_languaged_routers::<PokemonSpecies, _, _>(|state| state.pool.pokemon_specie()),
         )
 }
 
