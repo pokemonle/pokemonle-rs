@@ -1,7 +1,7 @@
 use crate::database::pagination::PaginatedResource;
 use crate::database::schema::pokemon_species_names;
 use crate::database::schema::{pokemon, pokemon_species};
-use crate::model::{Languaged, Pokemon, PokemonSpecies};
+use crate::model::{Ability, AbilityWithSlot, Languaged, Pokemon, PokemonAbility, PokemonSpecies};
 use crate::{impl_database_handler, impl_database_locale_handler};
 
 impl_database_handler!(
@@ -64,6 +64,44 @@ impl PokemonHandler {
             pokemons
                 .into_iter()
                 .map(|(p, n)| Languaged { item: p, name: n })
+                .collect(),
+        )
+    }
+
+    pub fn get_pokemon_abilities(
+        &self,
+        _pokemon_id: i32,
+        _lang: i32,
+    ) -> PaginatedResource<Languaged<AbilityWithSlot>> {
+        use crate::database::schema::abilities;
+        use crate::database::schema::ability_names;
+        use crate::database::schema::pokemon_abilities::dsl::*;
+        use diesel::prelude::*;
+
+        let items = pokemon_abilities
+            .inner_join(abilities::table.on(ability_id.eq(abilities::id)))
+            .inner_join(ability_names::table.on(abilities::id.eq(ability_names::ability_id)))
+            .filter(pokemon_id.eq(_pokemon_id))
+            .filter(ability_names::local_language_id.eq(_lang))
+            .select((
+                Ability::as_select(),
+                PokemonAbility::as_select(),
+                ability_names::name,
+            ))
+            .load::<(Ability, PokemonAbility, String)>(&mut self.connection.get().unwrap())
+            .expect("Error loading pokemon abilities");
+
+        PaginatedResource::new_from_vec(
+            items
+                .into_iter()
+                .map(|(a, p, n)| Languaged {
+                    item: AbilityWithSlot {
+                        ability: a,
+                        slot: p.slot,
+                        is_hidden: p.is_hidden,
+                    },
+                    name: n,
+                })
                 .collect(),
         )
     }

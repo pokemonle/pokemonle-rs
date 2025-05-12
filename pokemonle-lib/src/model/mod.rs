@@ -95,7 +95,9 @@ pub struct Type {
     pub damage_class_id: Option<i32>,
 }
 
-#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
+#[derive(
+    Queryable, Selectable, Serialize, Deserialize, Debug, Clone, JsonSchema, StructName, OperationIo,
+)]
 #[diesel(table_name = schema::abilities)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
 #[pokemonle(tags = ["ability"])]
@@ -209,4 +211,13 @@ impl<T: StructName + Serialize> StructName for Languaged<T> {
     fn tags() -> &'static [&'static str] {
         T::tags()
     }
+}
+
+#[derive(OperationIo, Serialize, Deserialize, StructName, JsonSchema, Clone)]
+#[pokemonle(tags = ["ability"])]
+pub struct AbilityWithSlot {
+    #[serde(flatten)]
+    pub ability: Ability,
+    pub slot: i32,
+    pub is_hidden: bool,
 }

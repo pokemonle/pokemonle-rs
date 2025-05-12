@@ -32,7 +32,7 @@ pub struct AppState {
 }
 
 #[derive(Deserialize, JsonSchema)]
-struct Resource {
+pub struct Resource {
     id: i32,
 }
 
