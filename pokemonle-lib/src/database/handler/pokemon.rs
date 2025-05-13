@@ -1,10 +1,13 @@
 use crate::database::pagination::PaginatedResource;
-use crate::database::schema::{pokemon, pokemon_colors, pokemon_species};
+use crate::database::schema::{
+    pokemon, pokemon_colors, pokemon_habitats, pokemon_shapes, pokemon_species,
+};
 use crate::database::schema::{
     pokemon_color_names, pokemon_species_flavor_text, pokemon_species_names,
 };
 use crate::model::{
-    Ability, Languaged, Pokemon, PokemonAbility, PokemonColor, PokemonSpecies, WithSlot,
+    Ability, Languaged, Pokemon, PokemonAbility, PokemonColor, PokemonHabitat, PokemonShape,
+    PokemonSpecies, WithSlot,
 };
 use crate::{
     impl_database_flavor_text_handler, impl_database_handler, impl_database_locale_handler,
@@ -167,4 +170,18 @@ impl_database_locale_handler!(
     pokemon_color_names::dsl::pokemon_color_id,
     pokemon_color_names::dsl::name,
     pokemon_color_names::dsl::local_language_id
+);
+
+impl_database_handler!(
+    PokemonShapeHandler,
+    PokemonShape,
+    pokemon_shapes::dsl::pokemon_shapes,
+    pokemon_shapes::dsl::id
+);
+
+impl_database_handler!(
+    PokemonHabitatHandler,
+    PokemonHabitat,
+    pokemon_habitats::dsl::pokemon_habitats,
+    pokemon_habitats::dsl::id
 );
