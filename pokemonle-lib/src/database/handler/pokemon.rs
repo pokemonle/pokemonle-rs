@@ -1,7 +1,11 @@
 use crate::database::pagination::PaginatedResource;
-use crate::database::schema::{pokemon, pokemon_species};
-use crate::database::schema::{pokemon_species_flavor_text, pokemon_species_names};
-use crate::model::{Ability, Languaged, Pokemon, PokemonAbility, PokemonSpecies, WithSlot};
+use crate::database::schema::{pokemon, pokemon_colors, pokemon_species};
+use crate::database::schema::{
+    pokemon_color_names, pokemon_species_flavor_text, pokemon_species_names,
+};
+use crate::model::{
+    Ability, Languaged, Pokemon, PokemonAbility, PokemonColor, PokemonSpecies, WithSlot,
+};
 use crate::{
     impl_database_flavor_text_handler, impl_database_handler, impl_database_locale_handler,
 };
@@ -145,4 +149,22 @@ impl_database_flavor_text_handler!(
     pokemon_species_flavor_text::dsl::flavor_text,
     pokemon_species_flavor_text::dsl::language_id,
     pokemon_species_flavor_text::dsl::version_id
+);
+
+impl_database_handler!(
+    PokemonColorHandler,
+    PokemonColor,
+    pokemon_colors::dsl::pokemon_colors,
+    pokemon_colors::dsl::id
+);
+
+impl_database_locale_handler!(
+    PokemonColorHandler,
+    PokemonColor,
+    pokemon_colors::dsl::pokemon_colors,
+    pokemon_colors::dsl::id,
+    pokemon_color_names::dsl::pokemon_color_names,
+    pokemon_color_names::dsl::pokemon_color_id,
+    pokemon_color_names::dsl::name,
+    pokemon_color_names::dsl::local_language_id
 );

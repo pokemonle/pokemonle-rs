@@ -153,6 +153,7 @@ impl_handlers! {
     language: language::LanguageHandler,
     pokedex: pokedex::PokedexHandler,
     pokemon: pokemon::PokemonHandler,
+    pokemon_color: pokemon::PokemonColorHandler,
     pokemon_specie: pokemon::PokemonSpecieHandler,
     r#type: r#type::TypeHandler,
     version: version::VersionHandler,

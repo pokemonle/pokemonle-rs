@@ -5,7 +5,7 @@ use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
 use axum::Json;
 use pokemonle_lib::database::pagination::PaginatedResource;
-use pokemonle_lib::model::Ability;
+use pokemonle_lib::model::{Ability, PokemonColor};
 
 use crate::v1::router::{api_flavor_text_routers_with_transform, api_languaged_routers};
 
@@ -23,6 +23,10 @@ pub fn routers() -> ApiRouter<AppState> {
         .nest(
             "/pokemon",
             api_languaged_routers::<Pokemon, _, _>(|state| state.pool.pokemon()),
+        )
+        .nest(
+            "/pokemon-colors",
+            api_languaged_routers::<PokemonColor, _, _>(|state| state.pool.pokemon_color()),
         )
         .nest(
             "/pokemon-species",

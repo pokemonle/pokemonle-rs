@@ -161,14 +161,3 @@ pub struct PokemonDetail {
     pub pokemon: Pokemon,
     pub abilities: Vec<PokemonAbility>,
 }
-
-#[derive(Queryable, OperationIo, StructName, Serialize, JsonSchema, Clone)]
-#[pokemonle(tags = ["pokemon"])]
-pub struct PokemonSpecieDetail {
-    #[serde(flatten)]
-    pub specie: PokemonSpecies,
-    pub egg_groups: Vec<super::EggGroup>,
-    pub color: PokemonColor,
-    pub shape: PokemonShape,
-    // habitat: Option<PokemonHabitat>,
-}
