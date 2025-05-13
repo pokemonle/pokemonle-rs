@@ -1,4 +1,28 @@
 #[macro_export]
+macro_rules! define_extra_struct {
+    ($name:ident { $($field:ident: $type:ty),* }) => {
+        #[derive(Debug, serde::Serialize, serde::Deserialize, schemars::JsonSchema,aide::OperationIo)]
+        pub struct $name<T> where T: pokemonle_trait::StructName {
+            #[serde(flatten)]
+            pub item: T,
+            $(
+                pub $field: $type,
+            )*
+        }
+
+        impl<T> pokemonle_trait::StructName for $name<T> where T: pokemonle_trait::StructName {
+            fn struct_name() -> &'static str {
+                T::struct_name()
+            }
+
+            fn tags() -> &'static [&'static str] {
+                T::tags()
+            }
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! impl_handlers {
     // Match multiple handler definitions at once
     (
@@ -224,6 +248,106 @@ macro_rules! impl_database_locale_handler {
                         "Database error retrieving {} by ID with locale",
                         resource_name
                     ))
+            }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! impl_database_flavor_text_handler {
+    (
+        $handler:ident,         // e.g., ItemHandler
+        $flavor_table:path,     // e.g., crate::schema::item_flavor_text::dsl::item_flavor_text
+        $flavor_id_column:path, // e.g., crate::schema::item_flavor_text::dsl::item_id
+        $flavor_text_column:path, // e.g., crate::schema::item_flavor_text::dsl::flavor_text
+        $flavor_language_column:path, // e.g., crate::schema::item_flavor_text::dsl::language_id
+        $flavor_version_group_column:path // e.g., crate::schema::item_flavor_text::dsl::version_group_id
+    ) => {
+        impl $crate::database::handler::DatabaseHandlerWithFlavorText for $handler {
+            fn get_all_resources_with_flavor_text(
+                &self,
+                resource_id: i32,
+                pagination: $crate::database::pagination::Paginated,
+                locale_id: i32,
+            ) -> $crate::database::pagination::PaginatedResource<$crate::model::ResourceDescription>
+            {
+                use diesel::dsl::count_star;
+                use diesel::prelude::*;
+
+                let resource_name = stringify!($resource);
+                let mut conn = self
+                    .connection
+                    .get()
+                    .expect("Failed to get DB connection from pool");
+
+                let total_items_query = $flavor_table
+                    .filter($flavor_language_column.eq(locale_id))
+                    .filter($flavor_id_column.eq(resource_id))
+                    .select(count_star());
+                let total_items = total_items_query
+                    .first::<i64>(&mut conn)
+                    .expect(&format!("Error counting {}", resource_name));
+                let total_pages = pagination.pages(total_items);
+
+                let resources = $flavor_table
+                    .filter($flavor_language_column.eq(locale_id))
+                    .filter($flavor_id_column.eq(resource_id))
+                    .select((
+                        $flavor_text_column,
+                        $flavor_version_group_column,
+                        $flavor_language_column,
+                    ))
+                    .limit(pagination.limit())
+                    .offset(pagination.offset())
+                    .load::<(String, i32, i32)>(&mut conn)
+                    .expect(&format!("Error loading {} with flavor text", resource_name))
+                    .into_iter()
+                    .map(|(flavor_text, version_group, language)| {
+                        $crate::model::ResourceDescription {
+                            description: flavor_text,
+                            version: $crate::model::DescriptionVersion::VersionGroup(version_group),
+                            language,
+                        }
+                    })
+                    .collect();
+
+                $crate::database::pagination::PaginatedResource {
+                    data: resources,
+                    total_pages,
+                    total_items,
+                    page: pagination.page,
+                    per_page: pagination.per_page,
+                }
+            }
+
+            fn get_latest_flavor_text(
+                &self,
+                resource_id: i32,
+                locale_id: i32,
+            ) -> Option<$crate::model::ResourceDescription> {
+                use diesel::prelude::*;
+                let mut conn = self
+                    .connection
+                    .get()
+                    .expect("Failed to get DB connection from pool");
+                $flavor_table
+                    .filter($flavor_language_column.eq(locale_id))
+                    .filter($flavor_id_column.eq(resource_id))
+                    .select((
+                        $flavor_text_column,
+                        $flavor_version_group_column,
+                        $flavor_language_column,
+                    ))
+                    .order($flavor_version_group_column.desc())
+                    .first::<(String, i32, i32)>(&mut conn)
+                    .ok()
+                    .map(|(flavor_text, version_group, language)| {
+                        $crate::model::ResourceDescription {
+                            description: flavor_text,
+                            version: $crate::model::DescriptionVersion::VersionGroup(version_group),
+                            language,
+                        }
+                    })
             }
         }
     };

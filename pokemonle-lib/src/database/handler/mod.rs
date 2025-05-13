@@ -7,6 +7,7 @@ mod location;
 mod pokemon;
 
 use crate::config::Config;
+use crate::model::ResourceDescription;
 use crate::{impl_handlers, prelude::*};
 use diesel::migration::{MigrationVersion, Result as MigrationResult};
 use diesel::r2d2::{ConnectionManager, Pool};
@@ -69,6 +70,21 @@ pub trait DatabaseHandlerWithLocale {
         resource_id: i32,
         locale_id: i32,
     ) -> Option<(Self::Resource, String)>;
+}
+
+pub trait DatabaseHandlerWithFlavorText {
+    fn get_all_resources_with_flavor_text(
+        &self,
+        resource_id: i32,
+        pagination: super::pagination::Paginated,
+        locale_id: i32,
+    ) -> PaginatedResource<ResourceDescription>;
+
+    fn get_latest_flavor_text(
+        &self,
+        resource_id: i32,
+        locale_id: i32,
+    ) -> Option<ResourceDescription>;
 }
 
 #[derive(Clone)]
@@ -145,9 +161,11 @@ impl_handlers! {
 
 mod ability {
     use crate::model::Ability;
-    use crate::{impl_database_handler, impl_database_locale_handler};
+    use crate::{
+        impl_database_flavor_text_handler, impl_database_handler, impl_database_locale_handler,
+    };
 
-    use crate::database::schema::{abilities, ability_names};
+    use crate::database::schema::{abilities, ability_flavor_text, ability_names};
     impl_database_handler!(
         AbilityHandler,
         Ability,
@@ -164,6 +182,15 @@ mod ability {
         ability_names::dsl::ability_id,
         ability_names::dsl::name,
         ability_names::dsl::local_language_id
+    );
+
+    impl_database_flavor_text_handler!(
+        AbilityHandler,
+        ability_flavor_text::dsl::ability_flavor_text,
+        ability_flavor_text::dsl::ability_id,
+        ability_flavor_text::dsl::flavor_text,
+        ability_flavor_text::dsl::language_id,
+        ability_flavor_text::dsl::version_group_id
     );
 }
 
@@ -261,9 +288,11 @@ mod version_group {
 }
 
 mod r#move {
-    use crate::database::schema::{move_names, moves};
+    use crate::database::schema::{move_flavor_text, move_names, moves};
     use crate::model::Move;
-    use crate::{impl_database_handler, impl_database_locale_handler};
+    use crate::{
+        impl_database_flavor_text_handler, impl_database_handler, impl_database_locale_handler,
+    };
 
     impl_database_handler!(MoveHandler, Move, moves::dsl::moves, moves::dsl::id);
 
@@ -276,5 +305,14 @@ mod r#move {
         move_names::dsl::move_id,
         move_names::dsl::name,
         move_names::dsl::local_language_id
+    );
+
+    impl_database_flavor_text_handler!(
+        MoveHandler,
+        move_flavor_text::dsl::move_flavor_text,
+        move_flavor_text::dsl::move_id,
+        move_flavor_text::dsl::flavor_text,
+        move_flavor_text::dsl::language_id,
+        move_flavor_text::dsl::version_group_id
     );
 }

@@ -14,13 +14,7 @@ where
         .iter()
         .fold(op, |acc, tag| acc.tag(tag))
         .description(&format!("Get a list of {}", T::struct_name()))
-        .response_with::<200, Json<ListResponse<T>>, _>(|res| {
-            res.description("example")
-            // .example(ListResponse {
-            //     data: vec![T::example()],
-            //     total: 1,
-            // })
-        })
+        .response_with::<200, Json<ListResponse<T>>, _>(|res| res.description("example"))
         .response_with::<404, (), _>(|res| {
             res.description(&format!("{} not found", T::struct_name()))
         })

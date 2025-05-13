@@ -10,6 +10,15 @@ diesel::table! {
 }
 
 diesel::table! {
+    ability_flavor_text (ability_id, version_group_id, language_id) {
+        ability_id -> Integer,
+        version_group_id -> Integer,
+        language_id -> Integer,
+        flavor_text -> Text,
+    }
+}
+
+diesel::table! {
     ability_names (ability_id, local_language_id) {
         ability_id -> Integer,
         local_language_id -> Integer,
@@ -176,6 +185,15 @@ diesel::table! {
 }
 
 diesel::table! {
+    item_flavor_text (item_id, version_group_id, language_id) {
+        item_id -> Integer,
+        version_group_id -> Integer,
+        language_id -> Integer,
+        flavor_text -> Text,
+    }
+}
+
+diesel::table! {
     item_fling_effects (id) {
         id -> Integer,
         identifier -> Text,
@@ -279,6 +297,15 @@ diesel::table! {
 diesel::table! {
     move_effects (id) {
         id -> Integer,
+    }
+}
+
+diesel::table! {
+    move_flavor_text (move_id, version_group_id, language_id) {
+        move_id -> Integer,
+        version_group_id -> Integer,
+        language_id -> Integer,
+        flavor_text -> Text,
     }
 }
 
@@ -441,6 +468,15 @@ diesel::table! {
 }
 
 diesel::table! {
+    pokemon_species_flavor_text (species_id, version_id, language_id) {
+        species_id -> Integer,
+        version_id -> Integer,
+        language_id -> Integer,
+        flavor_text -> Text,
+    }
+}
+
+diesel::table! {
     pokemon_species_names (pokemon_species_id, local_language_id) {
         pokemon_species_id -> Integer,
         local_language_id -> Integer,
@@ -523,6 +559,9 @@ diesel::table! {
 }
 
 diesel::joinable!(abilities -> generations (generation_id));
+diesel::joinable!(ability_flavor_text -> abilities (ability_id));
+diesel::joinable!(ability_flavor_text -> languages (language_id));
+diesel::joinable!(ability_flavor_text -> version_groups (version_group_id));
 diesel::joinable!(ability_names -> abilities (ability_id));
 diesel::joinable!(ability_names -> languages (local_language_id));
 diesel::joinable!(berries -> berry_firmness (firmness_id));
@@ -540,6 +579,9 @@ diesel::joinable!(evolution_chains -> items (baby_trigger_item_id));
 diesel::joinable!(generation_names -> generations (generation_id));
 diesel::joinable!(generation_names -> languages (local_language_id));
 diesel::joinable!(item_categories -> item_pockets (pocket_id));
+diesel::joinable!(item_flavor_text -> items (item_id));
+diesel::joinable!(item_flavor_text -> languages (language_id));
+diesel::joinable!(item_flavor_text -> version_groups (version_group_id));
 diesel::joinable!(item_names -> items (item_id));
 diesel::joinable!(item_names -> languages (local_language_id));
 diesel::joinable!(item_pocket_names -> item_pockets (item_pocket_id));
@@ -553,6 +595,9 @@ diesel::joinable!(location_areas -> locations (location_id));
 diesel::joinable!(location_names -> languages (local_language_id));
 diesel::joinable!(location_names -> locations (location_id));
 diesel::joinable!(locations -> regions (region_id));
+diesel::joinable!(move_flavor_text -> languages (language_id));
+diesel::joinable!(move_flavor_text -> moves (move_id));
+diesel::joinable!(move_flavor_text -> version_groups (version_group_id));
 diesel::joinable!(move_names -> languages (local_language_id));
 diesel::joinable!(move_names -> moves (move_id));
 diesel::joinable!(moves -> move_damage_classes (damage_class_id));
@@ -577,6 +622,9 @@ diesel::joinable!(pokemon_species -> growth_rates (growth_rate_id));
 diesel::joinable!(pokemon_species -> pokemon_colors (color_id));
 diesel::joinable!(pokemon_species -> pokemon_habitats (habitat_id));
 diesel::joinable!(pokemon_species -> pokemon_shapes (shape_id));
+diesel::joinable!(pokemon_species_flavor_text -> languages (language_id));
+diesel::joinable!(pokemon_species_flavor_text -> pokemon_species (species_id));
+diesel::joinable!(pokemon_species_flavor_text -> versions (version_id));
 diesel::joinable!(pokemon_species_names -> languages (local_language_id));
 diesel::joinable!(pokemon_species_names -> pokemon_species (pokemon_species_id));
 diesel::joinable!(pokemon_stats -> pokemon (pokemon_id));
@@ -595,6 +643,7 @@ diesel::joinable!(versions -> version_groups (version_group_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     abilities,
+    ability_flavor_text,
     ability_names,
     berries,
     berry_firmness,
@@ -615,6 +664,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     generations,
     growth_rates,
     item_categories,
+    item_flavor_text,
     item_fling_effects,
     item_names,
     item_pocket_names,
@@ -628,6 +678,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     locations,
     move_damage_classes,
     move_effects,
+    move_flavor_text,
     move_names,
     move_targets,
     moves,
@@ -642,6 +693,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     pokemon_habitats,
     pokemon_shapes,
     pokemon_species,
+    pokemon_species_flavor_text,
     pokemon_species_names,
     pokemon_stats,
     pokemon_types,

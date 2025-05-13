@@ -1,7 +1,7 @@
 use crate::database::pagination::PaginatedResource;
 use crate::database::schema::pokemon_species_names;
 use crate::database::schema::{pokemon, pokemon_species};
-use crate::model::{Ability, AbilityWithSlot, Languaged, Pokemon, PokemonAbility, PokemonSpecies};
+use crate::model::{Ability, Languaged, Pokemon, PokemonAbility, PokemonSpecies, WithSlot};
 use crate::{impl_database_handler, impl_database_locale_handler};
 
 impl_database_handler!(
@@ -72,7 +72,7 @@ impl PokemonHandler {
         &self,
         _pokemon_id: i32,
         _lang: i32,
-    ) -> PaginatedResource<Languaged<AbilityWithSlot>> {
+    ) -> PaginatedResource<Languaged<WithSlot<Ability>>> {
         use crate::database::schema::abilities;
         use crate::database::schema::ability_names;
         use crate::database::schema::pokemon_abilities::dsl::*;
@@ -95,8 +95,8 @@ impl PokemonHandler {
             items
                 .into_iter()
                 .map(|(a, p, n)| Languaged {
-                    item: AbilityWithSlot {
-                        ability: a,
+                    item: WithSlot {
+                        item: a,
                         slot: p.slot,
                         is_hidden: p.is_hidden,
                     },

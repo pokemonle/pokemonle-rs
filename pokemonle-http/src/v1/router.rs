@@ -12,7 +12,7 @@ use axum::{
 };
 use pokemonle_lib::{
     database::{
-        handler::{DatabaseHandler, DatabaseHandlerWithLocale},
+        handler::{DatabaseHandler, DatabaseHandlerWithFlavorText, DatabaseHandlerWithLocale},
         pagination::{Paginated, PaginatedResource},
     },
     model::Languaged,
@@ -230,6 +230,79 @@ where
             "/{id}",
             get_with(
                 move |(state, lang, id)| get::<T, H>(state, lang, id, handler_fn),
+                // get_item_by_id_docs with transform
+                move |op| transform(get_item_by_id_docs::<Languaged<T>>(op)),
+            ),
+        )
+}
+
+pub fn api_flavor_text_routers_with_transform<T, H, F, O>(
+    handler_fn: F,
+    transform: O,
+) -> ApiRouter<AppState>
+where
+    T: StructName + OperationOutput + Serialize + JsonSchema + Clone + Send + Sync + 'static,
+    <T as OperationOutput>::Inner: Serialize + From<T>,
+    H: DatabaseHandlerWithFlavorText + Sync + 'static,
+    F: Fn(AppState) -> H + Clone + Copy + Send + Sync + 'static,
+    O: FnOnce(TransformOperation) -> TransformOperation + Clone + Copy,
+{
+    use super::openapi::{get_item_by_id_docs, list_items_docs};
+
+    async fn list<H>(
+        State(state): State<AppState>,
+        Path(resource): Path<Resource>,
+        Query(Language { lang }): Query<Language>,
+        Query(pagination): Query<Paginated>,
+        handle_fn: impl Fn(AppState) -> H,
+    ) -> impl IntoApiResponse
+    where
+        H: DatabaseHandlerWithFlavorText,
+    {
+        let handler = handle_fn(state);
+
+        let resp = handler.get_all_resources_with_flavor_text(resource.id, pagination, lang);
+        (StatusCode::OK, Json(resp))
+    }
+
+    async fn get<H>(
+        State(state): State<AppState>,
+        Query(Language { lang }): Query<Language>,
+        Path(resource): Path<Resource>,
+        // Path(version): Path<Version>,
+        handler_fn: impl Fn(AppState) -> H,
+    ) -> impl IntoApiResponse
+    where
+        H: DatabaseHandlerWithFlavorText,
+    {
+        let handler = handler_fn(state);
+
+        match handler.get_latest_flavor_text(resource.id, lang) {
+            Some(resource) => (StatusCode::OK, Json(resource)).into_response(),
+            None => {
+                let err = Error::ResourceNotFound(format!(
+                    "flavor text with id {} not found",
+                    resource.id
+                ));
+                err.into_response()
+            }
+        }
+    }
+
+    ApiRouter::new()
+        .api_route(
+            "/",
+            get_with(
+                move |(state, resource, lang, pagination)| {
+                    list::<H>(state, resource, lang, pagination, handler_fn)
+                },
+                move |op| transform(list_items_docs::<Languaged<T>>(op)),
+            ),
+        )
+        .api_route(
+            "/latest",
+            get_with(
+                move |(state, lang, id)| get::<H>(state, lang, id, handler_fn),
                 // get_item_by_id_docs with transform
                 move |op| transform(get_item_by_id_docs::<Languaged<T>>(op)),
             ),

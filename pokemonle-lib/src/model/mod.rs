@@ -1,4 +1,5 @@
 use crate::database::schema;
+use crate::define_extra_struct;
 use aide::OperationIo;
 use diesel::prelude::*;
 
@@ -195,29 +196,24 @@ pub struct PokedexVersionGroup {
     pub version_group_id: i32,
 }
 
-#[derive(OperationIo, Serialize, Deserialize, JsonSchema, Clone)]
-pub struct Languaged<T: StructName + Serialize> {
-    #[serde(flatten)]
-    pub item: T,
-    pub name: String,
-    // pub description: String,
+define_extra_struct!(Languaged { name: String });
+
+define_extra_struct!(WithSlot {
+    slot: i32,
+    is_hidden: bool
+});
+
+#[derive(Debug, Serialize, Deserialize, JsonSchema, OperationIo)]
+#[serde(rename_all = "snake_case")]
+pub enum DescriptionVersion {
+    Version(i32),
+    VersionGroup(i32),
 }
 
-impl<T: StructName + Serialize> StructName for Languaged<T> {
-    fn struct_name() -> &'static str {
-        T::struct_name()
-    }
-
-    fn tags() -> &'static [&'static str] {
-        T::tags()
-    }
-}
-
-#[derive(OperationIo, Serialize, Deserialize, StructName, JsonSchema, Clone)]
-#[pokemonle(tags = ["ability"])]
-pub struct AbilityWithSlot {
+#[derive(Debug, Serialize, Deserialize, JsonSchema, StructName, OperationIo)]
+pub struct ResourceDescription {
+    pub description: String,
     #[serde(flatten)]
-    pub ability: Ability,
-    pub slot: i32,
-    pub is_hidden: bool,
+    pub version: DescriptionVersion,
+    pub language: i32,
 }

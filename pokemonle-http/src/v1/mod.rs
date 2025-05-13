@@ -6,7 +6,7 @@ mod resource;
 mod response;
 mod router;
 
-use router::Language;
+use router::{api_flavor_text_routers_with_transform, Language};
 use std::sync::Arc;
 
 use aide::axum::{routing::get_with, ApiRouter, IntoApiResponse};
@@ -36,12 +36,23 @@ pub struct Resource {
     id: i32,
 }
 
+// #[derive(Deserialize, JsonSchema)]
+// pub struct Version {
+//     id: i32,
+// }
+
 fn item_routers() -> ApiRouter<AppState> {
     use pokemonle_lib::model::{Item, ItemCategory, ItemPocket};
     ApiRouter::new()
         .nest(
             "/items",
-            api_languaged_routers::<Item, _, _>(|state| state.pool.item()),
+            api_languaged_routers::<Item, _, _>(|state| state.pool.item()).nest(
+                "/{id}/flavor-text",
+                api_flavor_text_routers_with_transform::<Item, _, _, _>(
+                    |state| state.pool.item(),
+                    |op| op.tag("item"),
+                ),
+            ),
         )
         .nest(
             "/item-categories",
