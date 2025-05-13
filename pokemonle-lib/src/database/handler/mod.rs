@@ -1,6 +1,7 @@
 mod berry;
 mod contest;
 mod encounter;
+mod evolution;
 mod item;
 mod language;
 mod location;
@@ -142,6 +143,8 @@ impl_handlers! {
     encounter_condition_value: encounter::EncounterConditionValueHandler,
     encounter_slot: encounter::EncounterSlotHandler,
     encounter_method: encounter::EncounterMethodHandler,
+    evolution_chain: evolution::EvolutionChainHandler,
+    evolution_trigger: evolution::EvolutionTriggerHandler,
     generation: generation::GenerationHandler,
     location: location::LocationHandler,
     location_area: location::LocationAreaHandler,

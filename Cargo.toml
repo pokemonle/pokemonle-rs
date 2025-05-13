@@ -3,7 +3,7 @@ resolver = "2"
 members = [
     "pokemonle-crypto",
     "pokemonle-derive",
-    "pokemonle-http",
+    "pokemonle-api",
     "pokemonle-lib",
     "pokemonle-trait",
 ]

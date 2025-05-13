@@ -19,7 +19,7 @@ use axum::{
 use pokemonle_lib::{
     crypto::Crypto,
     database::{handler::DatabaseClientPooled, pagination::PaginatedResource},
-    model::{Generation, Pokemon, Type},
+    model::{Generation, Languaged, Pokemon, PokemonSpecies, Type},
 };
 use router::{api_languaged_routers, api_routers};
 use schemars::JsonSchema;
@@ -115,6 +115,42 @@ fn encounter_routers() -> ApiRouter<AppState> {
         )
 }
 
+fn evolution_routers() -> ApiRouter<AppState> {
+    use pokemonle_lib::model::{EvolutionChain, EvolutionTrigger};
+
+    async fn get_evolution_chain_pokemon_species(
+        State(state): State<AppState>,
+        Path(Resource { id }): Path<Resource>,
+        Query(Language { lang }): Query<Language>,
+    ) -> impl IntoApiResponse {
+        let pokemon_species = state
+            .pool
+            .evolution_chain()
+            .get_pokemon_species_by_evolution_chain_id(id, lang);
+        (StatusCode::OK, Json(pokemon_species))
+    }
+
+    ApiRouter::new()
+        .nest(
+            "/evolution-chains",
+            api_routers::<EvolutionChain, _, _>(|state| state.pool.evolution_chain()).api_route(
+                "/{id}/pokemon-species",
+                get_with(get_evolution_chain_pokemon_species, |op| {
+                    op.tag("evolution")
+                        .tag("pokemon")
+                        .description("Get a list of pokemon species by evolution chain")
+                        .response_with::<200, Json<PaginatedResource<Languaged<PokemonSpecies>>>, _>(|o| {
+                            o.description("example")
+                        })
+                }),
+            ),
+        )
+        .nest(
+            "/evolution-triggers",
+            api_routers::<EvolutionTrigger, _, _>(|state| state.pool.evolution_trigger()),
+        )
+}
+
 fn location_routers() -> ApiRouter<AppState> {
     use pokemonle_lib::model::{Location, LocationArea, Region};
     ApiRouter::new()
@@ -188,6 +224,7 @@ pub fn routers() -> ApiRouter<AppState> {
         .merge(berry_routers())
         .merge(contest_routers())
         .merge(encounter_routers())
+        .merge(evolution_routers())
         .nest("/game", game::routers())
         .nest(
             "/generations",

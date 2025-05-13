@@ -17,4 +17,4 @@ FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y ca-certificates sqlite3 postgresql && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/target/release/pokemonle* /usr/local/bin/
-ENTRYPOINT [ "/usr/local/bin/pokemonle-http" ]
+ENTRYPOINT [ "/usr/local/bin/pokemonle-api" ]
