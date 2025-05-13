@@ -7,7 +7,7 @@ use axum::Json;
 use pokemonle_lib::database::pagination::PaginatedResource;
 use pokemonle_lib::model::Ability;
 
-use crate::v1::router::api_languaged_routers;
+use crate::v1::router::{api_flavor_text_routers_with_transform, api_languaged_routers};
 
 use super::router::Language;
 use super::{AppState, Resource};
@@ -26,7 +26,14 @@ pub fn routers() -> ApiRouter<AppState> {
         )
         .nest(
             "/pokemon-species",
-            api_languaged_routers::<PokemonSpecies, _, _>(|state| state.pool.pokemon_specie()),
+            api_languaged_routers::<PokemonSpecies, _, _>(|state| state.pool.pokemon_specie())
+                .nest(
+                    "/{id}/flavor-text",
+                    api_flavor_text_routers_with_transform::<PokemonSpecies, _, _, _>(
+                        |state| state.pool.pokemon_specie(),
+                        |op| op.tag("pokemon-species"),
+                    ),
+                ),
         )
         .api_route(
             "/pokemon/{id}/abilities",

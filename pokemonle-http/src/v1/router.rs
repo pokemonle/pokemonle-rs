@@ -15,7 +15,7 @@ use pokemonle_lib::{
         handler::{DatabaseHandler, DatabaseHandlerWithFlavorText, DatabaseHandlerWithLocale},
         pagination::{Paginated, PaginatedResource},
     },
-    model::Languaged,
+    model::{Languaged, ResourceDescription},
 };
 use pokemonle_trait::StructName;
 use schemars::JsonSchema;
@@ -247,8 +247,6 @@ where
     F: Fn(AppState) -> H + Clone + Copy + Send + Sync + 'static,
     O: FnOnce(TransformOperation) -> TransformOperation + Clone + Copy,
 {
-    use super::openapi::{get_item_by_id_docs, list_items_docs};
-
     async fn list<H>(
         State(state): State<AppState>,
         Path(resource): Path<Resource>,
@@ -296,7 +294,13 @@ where
                 move |(state, resource, lang, pagination)| {
                     list::<H>(state, resource, lang, pagination, handler_fn)
                 },
-                move |op| transform(list_items_docs::<Languaged<T>>(op)),
+                move |op| {
+                    transform(
+                        op.response_with::<200, Json<PaginatedResource<ResourceDescription>>, _>(
+                            |r| r.description("return paginated flavor text"),
+                        ),
+                    )
+                },
             ),
         )
         .api_route(
@@ -304,7 +308,11 @@ where
             get_with(
                 move |(state, lang, id)| get::<H>(state, lang, id, handler_fn),
                 // get_item_by_id_docs with transform
-                move |op| transform(get_item_by_id_docs::<Languaged<T>>(op)),
+                move |op| {
+                    transform(op.response_with::<200, Json<ResourceDescription>, _>(|r| {
+                        r.description("return latest flavor text")
+                    }))
+                },
             ),
         )
 }

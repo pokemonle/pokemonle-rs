@@ -136,7 +136,13 @@ fn move_routers() -> ApiRouter<AppState> {
     use pokemonle_lib::model::Move;
     ApiRouter::new().nest(
         "/moves",
-        api_languaged_routers::<Move, _, _>(|state| state.pool.r#move()),
+        api_languaged_routers::<Move, _, _>(|state| state.pool.r#move()).nest(
+            "/{id}/flavor-text",
+            api_flavor_text_routers_with_transform::<Move, _, _, _>(
+                |state| state.pool.r#move(),
+                |op| op.tag("move"),
+            ),
+        ),
     )
     // .nest(
     //     "/move-targets",
@@ -159,17 +165,25 @@ pub fn routers() -> ApiRouter<AppState> {
     ApiRouter::new()
         .nest(
             "/abilities",
-            api_languaged_routers::<Ability, _, _>(|state| state.pool.ability()).api_route(
-                "/{id}/pokemons",
-                get_with(get_ablitity_pokemons, |op| {
-                    op.tag("ability")
-                        .tag("pokemon")
-                        .description("Get a list of pokemons by ability")
-                        .response_with::<200, Json<PaginatedResource<Pokemon>>, _>(|o| {
-                            o.description("example")
-                        })
-                }),
-            ),
+            api_languaged_routers::<Ability, _, _>(|state| state.pool.ability())
+                .nest(
+                    "/{id}/flavor-text",
+                    api_flavor_text_routers_with_transform::<Ability, _, _, _>(
+                        |state| state.pool.ability(),
+                        |op| op.tag("ability"),
+                    ),
+                )
+                .api_route(
+                    "/{id}/pokemons",
+                    get_with(get_ablitity_pokemons, |op| {
+                        op.tag("ability")
+                            .tag("pokemon")
+                            .description("Get a list of pokemons by ability")
+                            .response_with::<200, Json<PaginatedResource<Pokemon>>, _>(|o| {
+                                o.description("example")
+                            })
+                    }),
+                ),
         )
         .merge(berry_routers())
         .merge(contest_routers())

@@ -1,8 +1,10 @@
 use crate::database::pagination::PaginatedResource;
-use crate::database::schema::pokemon_species_names;
 use crate::database::schema::{pokemon, pokemon_species};
+use crate::database::schema::{pokemon_species_flavor_text, pokemon_species_names};
 use crate::model::{Ability, Languaged, Pokemon, PokemonAbility, PokemonSpecies, WithSlot};
-use crate::{impl_database_handler, impl_database_locale_handler};
+use crate::{
+    impl_database_flavor_text_handler, impl_database_handler, impl_database_locale_handler,
+};
 
 impl_database_handler!(
     PokemonHandler,
@@ -134,4 +136,13 @@ impl_database_locale_handler!(
     pokemon_species_names::dsl::pokemon_species_id,
     pokemon_species_names::dsl::name,
     pokemon_species_names::dsl::local_language_id
+);
+
+impl_database_flavor_text_handler!(
+    PokemonSpecieHandler,
+    pokemon_species_flavor_text::dsl::pokemon_species_flavor_text,
+    pokemon_species_flavor_text::dsl::species_id,
+    pokemon_species_flavor_text::dsl::flavor_text,
+    pokemon_species_flavor_text::dsl::language_id,
+    pokemon_species_flavor_text::dsl::version_id
 );
