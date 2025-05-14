@@ -11,7 +11,7 @@ mod pokemon;
 use crate::config::Config;
 use crate::model::{Languaged, ResourceDescription};
 use crate::{impl_handlers, prelude::*};
-use diesel::migration::{MigrationVersion, Result as MigrationResult};
+use diesel::migration::MigrationVersion;
 use diesel::r2d2::{ConnectionManager, Pool};
 use diesel::{Connection, MultiConnection, PgConnection, QueryResult, SqliteConnection};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
@@ -123,7 +123,7 @@ impl DatabaseClientPooled {
                     .map(|m| {
                         debug!("Running migration: {}", m.name());
                         conn.run_migration(m)
-                            .expect(format!("Error running migration: {}", m.name()).as_str())
+                            .unwrap_or_else(|_| panic!("Error running migration: {}", m.name()))
                     })
                     .collect::<Vec<MigrationVersion>>();
             });
