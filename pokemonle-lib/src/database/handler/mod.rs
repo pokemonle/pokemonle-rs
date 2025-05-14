@@ -160,6 +160,7 @@ impl_handlers! {
     pokedex: pokedex::PokedexHandler,
     pokemon: pokemon::PokemonHandler,
     pokemon_color: pokemon::PokemonColorHandler,
+    pokemon_evolution: pokemon::PokemonEvolutionHandler,
     pokemon_habitat: pokemon::PokemonHabitatHandler,
     pokemon_shape: pokemon::PokemonShapeHandler,
     pokemon_specie: pokemon::PokemonSpecieHandler,

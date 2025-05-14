@@ -28,6 +28,9 @@ pub enum Error {
 
     #[error("Mutex lock was poisoned")]
     MutexPoisonError,
+
+    #[error(transparent)]
+    SerdePlainError(#[from] serde_plain::Error),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

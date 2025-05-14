@@ -31,12 +31,29 @@ pub struct EvolutionTrigger {
 pub struct PokemonEvolution {
     pub id: i32,
     pub evolved_species_id: i32,
-    pub evolution_trigger_id: i32,
+    #[diesel(column_name = evolution_trigger_id)]
+    pub evolution_trigger: EvolutionTriggerEnum,
     pub trigger_item_id: Option<i32>,
     pub minimum_level: Option<i32>,
+    #[diesel(column_name = gender_id)]
+    pub gender: Option<Gender>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    Serialize,
+    Deserialize,
+    JsonSchema,
+    diesel::expression::AsExpression,
+    diesel::deserialize::FromSqlRow,
+)]
+#[diesel(sql_type = diesel::sql_types::Integer)]
+#[serde(rename_all = "snake_case")]
 pub enum EvolutionTriggerEnum {
     LevelUp = 1,
     Trade = 2,
@@ -53,45 +70,107 @@ pub enum EvolutionTriggerEnum {
     RecoilDamage = 13,
 }
 
-impl TryFrom<i32> for EvolutionTriggerEnum {
-    type Error = String;
-
-    fn try_from(id: i32) -> Result<Self, Self::Error> {
-        match id {
-            1 => Ok(Self::LevelUp),
-            2 => Ok(Self::Trade),
-            3 => Ok(Self::UseItem),
-            4 => Ok(Self::Shed),
-            5 => Ok(Self::Spin),
-            6 => Ok(Self::TowerOfDarkness),
-            7 => Ok(Self::TowerOfWaters),
-            8 => Ok(Self::ThreeCriticalHits),
-            9 => Ok(Self::TakeDamage),
-            10 => Ok(Self::Other),
-            11 => Ok(Self::AgileStyleMove),
-            12 => Ok(Self::StrongStyleMove),
-            13 => Ok(Self::RecoilDamage),
-            _ => Err(format!("Invalid evolution trigger id: {}", id)),
+impl<DB> diesel::serialize::ToSql<diesel::sql_types::Integer, DB> for EvolutionTriggerEnum
+where
+    DB: diesel::backend::Backend,
+    i32: diesel::serialize::ToSql<diesel::sql_types::Integer, DB>,
+{
+    fn to_sql<'b>(
+        &'b self,
+        out: &mut diesel::serialize::Output<'b, '_, DB>,
+    ) -> diesel::serialize::Result {
+        match self {
+            EvolutionTriggerEnum::LevelUp => 1.to_sql(out),
+            EvolutionTriggerEnum::Trade => 2.to_sql(out),
+            EvolutionTriggerEnum::UseItem => 3.to_sql(out),
+            EvolutionTriggerEnum::Shed => 4.to_sql(out),
+            EvolutionTriggerEnum::Spin => 5.to_sql(out),
+            EvolutionTriggerEnum::TowerOfDarkness => 6.to_sql(out),
+            EvolutionTriggerEnum::TowerOfWaters => 7.to_sql(out),
+            EvolutionTriggerEnum::ThreeCriticalHits => 8.to_sql(out),
+            EvolutionTriggerEnum::TakeDamage => 9.to_sql(out),
+            EvolutionTriggerEnum::Other => 10.to_sql(out),
+            EvolutionTriggerEnum::AgileStyleMove => 11.to_sql(out),
+            EvolutionTriggerEnum::StrongStyleMove => 12.to_sql(out),
+            EvolutionTriggerEnum::RecoilDamage => 13.to_sql(out),
         }
     }
 }
 
-impl EvolutionTriggerEnum {
-    pub fn identifier(&self) -> &str {
+impl<DB> diesel::deserialize::FromSql<diesel::sql_types::Integer, DB> for EvolutionTriggerEnum
+where
+    DB: diesel::backend::Backend,
+    i32: diesel::deserialize::FromSql<diesel::sql_types::Integer, DB>,
+{
+    fn from_sql(bytes: DB::RawValue<'_>) -> diesel::deserialize::Result<Self> {
+        match i32::from_sql(bytes)? {
+            1 => Ok(EvolutionTriggerEnum::LevelUp),
+            2 => Ok(EvolutionTriggerEnum::Trade),
+            3 => Ok(EvolutionTriggerEnum::UseItem),
+            4 => Ok(EvolutionTriggerEnum::Shed),
+            5 => Ok(EvolutionTriggerEnum::Spin),
+            6 => Ok(EvolutionTriggerEnum::TowerOfDarkness),
+            7 => Ok(EvolutionTriggerEnum::TowerOfWaters),
+            8 => Ok(EvolutionTriggerEnum::ThreeCriticalHits),
+            9 => Ok(EvolutionTriggerEnum::TakeDamage),
+            10 => Ok(EvolutionTriggerEnum::Other),
+            11 => Ok(EvolutionTriggerEnum::AgileStyleMove),
+            12 => Ok(EvolutionTriggerEnum::StrongStyleMove),
+            13 => Ok(EvolutionTriggerEnum::RecoilDamage),
+            other => Err(format!("Unexpected variant: {}", other).into()),
+        }
+    }
+}
+
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    Serialize,
+    Deserialize,
+    JsonSchema,
+    diesel::expression::AsExpression,
+    diesel::deserialize::FromSqlRow,
+)]
+#[diesel(sql_type = diesel::sql_types::Integer)]
+#[serde(rename_all = "snake_case")]
+pub enum Gender {
+    Female = 1,
+    Male = 2,
+    Genderless = 3,
+}
+
+impl<DB> diesel::serialize::ToSql<diesel::sql_types::Integer, DB> for Gender
+where
+    DB: diesel::backend::Backend,
+    i32: diesel::serialize::ToSql<diesel::sql_types::Integer, DB>,
+{
+    fn to_sql<'b>(
+        &'b self,
+        out: &mut diesel::serialize::Output<'b, '_, DB>,
+    ) -> diesel::serialize::Result {
         match self {
-            Self::LevelUp => "level-up",
-            Self::Trade => "trade",
-            Self::UseItem => "use-item",
-            Self::Shed => "shed",
-            Self::Spin => "spin",
-            Self::TowerOfDarkness => "tower-of-darkness",
-            Self::TowerOfWaters => "tower-of-waters",
-            Self::ThreeCriticalHits => "three-critical-hits",
-            Self::TakeDamage => "take-damage",
-            Self::Other => "other",
-            Self::AgileStyleMove => "agile-style-move",
-            Self::StrongStyleMove => "strong-style-move",
-            Self::RecoilDamage => "recoil-damage",
+            Gender::Female => 1.to_sql(out),
+            Gender::Male => 2.to_sql(out),
+            Gender::Genderless => 3.to_sql(out),
+        }
+    }
+}
+
+impl<DB> diesel::deserialize::FromSql<diesel::sql_types::Integer, DB> for Gender
+where
+    DB: diesel::backend::Backend,
+    i32: diesel::deserialize::FromSql<diesel::sql_types::Integer, DB>,
+{
+    fn from_sql(bytes: DB::RawValue<'_>) -> diesel::deserialize::Result<Self> {
+        match i32::from_sql(bytes)? {
+            1 => Ok(Gender::Female),
+            2 => Ok(Gender::Male),
+            3 => Ok(Gender::Genderless),
+            other => Err(format!("Unexpected variant: {}", other).into()),
         }
     }
 }

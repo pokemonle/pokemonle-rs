@@ -3,7 +3,7 @@ use aide::OperationIo;
 use diesel::prelude::*;
 use pokemonle_trait::StructName;
 use schemars::JsonSchema;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
 #[diesel(table_name = schema::moves)]
@@ -47,4 +47,33 @@ pub struct PokemonMove {
     pub level: i32,
     pub order: Option<i32>,
     pub mastery: Option<i32>,
+}
+
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    Serialize,
+    Deserialize,
+    JsonSchema,
+    StructName,
+    OperationIo,
+)]
+#[serde(rename_all = "kebab-case")]
+pub enum PokemonMoveMethod {
+    LevelUp = 1,
+    Egg = 2,
+    Tutor = 3,
+    Machine = 4,
+    StadiumSurfingPikachu = 5,
+    LightBallEgg = 6,
+    ColossenumPurification = 7,
+    XdShadow = 8,
+    XdPurification = 9,
+    FormChange = 10,
+    ZygardeCube = 11,
+    Unknown,
 }

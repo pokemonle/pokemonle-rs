@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::error::Result;
 use aide::axum::routing::get_with;
 use aide::axum::{ApiRouter, IntoApiResponse};
@@ -5,7 +7,10 @@ use aide::transform::TransformOperation;
 use axum::extract::{Path, Query, State};
 use axum::Json;
 use pokemonle_lib::database::pagination::PaginatedResource;
-use pokemonle_lib::model::{Ability, Languaged, Move, PokemonColor, PokemonHabitat, PokemonShape};
+use pokemonle_lib::model::{
+    Ability, Languaged, Move, PokemonColor, PokemonEvolution, PokemonHabitat, PokemonMoveMethod,
+    PokemonShape,
+};
 
 use crate::v1::router::{
     api_flavor_text_routers_with_transform, api_languaged_routers, api_routers,
@@ -41,13 +46,17 @@ pub fn routers() -> ApiRouter<AppState> {
                 "/{id}/moves",
                 get_with(get_pokemon_moves, |op| {
                     op.tag("pokemon")
-                        .response_with::<200, Json<PaginatedResource<Languaged<Move>>>, _>(|o| o)
+                        .response_with::<200, Json<HashMap<PokemonMoveMethod, Vec<Languaged<Move>>>>, _>(|o| o)
                 }),
             ),
         )
         .nest(
             "/pokemon-colors",
             api_languaged_routers::<PokemonColor, _, _>(|state| state.pool.pokemon_color()),
+        )
+        .nest(
+            "/pokemon-evolution",
+            api_routers::<PokemonEvolution, _, _>(|state| state.pool.pokemon_evolution()),
         )
         .nest(
             "/pokemon-shapes",
