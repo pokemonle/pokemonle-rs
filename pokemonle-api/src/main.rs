@@ -20,7 +20,7 @@ use tower_http::trace::TraceLayer;
 use tracing_subscriber::{self, layer::SubscriberExt, util::SubscriberInitExt};
 
 #[tokio::main]
-async fn main() {
+async fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
@@ -35,11 +35,8 @@ async fn main() {
 
     aide::generate::extract_schemas(true);
 
-    let state = {
-        let pool = pokemonle_lib::database::handler::DatabaseClientPooled::new().unwrap();
-
-        v1::AppState { pool }
-    };
+    let pool = pokemonle_lib::database::handler::DatabaseClientPooled::new()?;
+    let state = v1::AppState { pool };
 
     let mut api = OpenApi {
         info: Info {
@@ -88,17 +85,16 @@ async fn main() {
         .unwrap_or(9001);
 
     // run our app with hyper, listening globally on port 8000
-    let listener = tokio::net::TcpListener::bind(SocketAddr::from(([0, 0, 0, 0], port)))
-        .await
-        .unwrap();
+    let listener = tokio::net::TcpListener::bind(SocketAddr::from(([0, 0, 0, 0], port))).await?;
 
     axum::serve(
         listener,
         app.into_make_service_with_connect_info::<SocketAddr>(),
     )
     .with_graceful_shutdown(shutdown_signal())
-    .await
-    .unwrap();
+    .await?;
+
+    Ok(())
 }
 
 async fn handler_404() -> impl IntoApiResponse {

@@ -25,6 +25,9 @@ pub enum Error {
 
     #[error(transparent)]
     R2D2Error(#[from] diesel::r2d2::Error),
+
+    #[error("Mutex lock was poisoned")]
+    MutexPoisonError,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

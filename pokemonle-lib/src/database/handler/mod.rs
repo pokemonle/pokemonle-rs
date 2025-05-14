@@ -102,7 +102,9 @@ impl DatabaseClientPooled {
         let pool = if config.database_url.starts_with("postgres://") {
             Pool::builder().build(ConnectionManager::new(config.database_url))?
         } else {
-            let (vfs, once) = &*VFS.lock().unwrap();
+            let (vfs, once) = &*VFS
+                .lock()
+                .map_err(|_poison_error| Error::MutexPoisonError)?;
             let url = match vfs {
                 0 => &config.database_url,
                 1 => &format!("file:{}?vfs=opfs-sahpool", config.database_url),
@@ -114,17 +116,16 @@ impl DatabaseClientPooled {
                 .unwrap_or_else(|_| panic!("{}", format!("Error connecting to {}", url)));
             once.call_once(|| {
                 // Run migrations
-                let r = conn
+                let _ = conn
                     .pending_migrations(MIGRATIONS)
                     .expect("Error loading migrations")
                     .iter()
                     .map(|m| {
                         debug!("Running migration: {}", m.name());
                         conn.run_migration(m)
+                            .expect(format!("Error running migration: {}", m.name()).as_str())
                     })
-                    .collect::<MigrationResult<Vec<MigrationVersion>>>();
-
-                r.unwrap();
+                    .collect::<Vec<MigrationVersion>>();
             });
 
             Pool::builder().build(ConnectionManager::new(config.database_url))?

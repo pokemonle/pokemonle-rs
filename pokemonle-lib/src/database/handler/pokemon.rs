@@ -43,7 +43,7 @@ impl PokemonHandler {
             .select(PokemonSpecies::as_select())
             .filter(generation_id.eq_any(gens))
             .order(random())
-            .first::<PokemonSpecies>(&mut self.connection.get().unwrap())
+            .first::<PokemonSpecies>(&mut self.connection.get().map_err(Error::R2D2PoolError)?)
             .map_err(Error::DieselError)
     }
     // list pokemons from pokemon_abilities table with given ability_id
@@ -69,7 +69,7 @@ impl PokemonHandler {
             )
             .filter(pokemon_species_names::local_language_id.eq(_lang))
             .select((Pokemon::as_select(), pokemon_species_names::name))
-            .load::<(Pokemon, String)>(&mut self.connection.get().unwrap())
+            .load::<(Pokemon, String)>(&mut self.connection.get().map_err(Error::R2D2PoolError)?)
             .map_err(Error::DieselError)
             .map(|pokemons| {
                 PaginatedResource::new_from_vec(
@@ -101,7 +101,9 @@ impl PokemonHandler {
                 PokemonAbility::as_select(),
                 ability_names::name,
             ))
-            .load::<(Ability, PokemonAbility, String)>(&mut self.connection.get().unwrap())
+            .load::<(Ability, PokemonAbility, String)>(
+                &mut self.connection.get().map_err(Error::R2D2PoolError)?,
+            )
             .map_err(Error::DieselError)
             .map(|items| {
                 PaginatedResource::new_from_vec(
