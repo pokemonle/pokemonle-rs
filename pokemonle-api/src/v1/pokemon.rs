@@ -11,8 +11,7 @@ use crate::v1::router::{
     api_flavor_text_routers_with_transform, api_languaged_routers, api_routers,
 };
 
-use super::router::Language;
-use super::{AppState, Resource, VersionGroup};
+use super::{AppState, Language, Resource, VersionGroup};
 
 async fn get_pokemon_moves(
     State(state): State<AppState>,

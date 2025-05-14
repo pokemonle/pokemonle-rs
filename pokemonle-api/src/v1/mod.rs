@@ -1,13 +1,17 @@
 mod ability;
 mod language;
+mod r#move;
 mod openapi;
+mod param;
 mod pokemon;
 mod resource;
 mod response;
 mod router;
 
+pub(crate) use param::*;
+
 use crate::error::Result;
-use router::{api_flavor_text_routers_with_transform, Language};
+use router::api_flavor_text_routers_with_transform;
 
 use aide::axum::{routing::get_with, ApiRouter, IntoApiResponse};
 
@@ -17,25 +21,13 @@ use axum::{
 };
 use pokemonle_lib::{
     database::{handler::DatabaseClientPooled, pagination::PaginatedResource},
-    model::{Generation, Languaged, Pokemon, PokemonSpecies, Type},
+    model::{Generation, Languaged, PokemonSpecies, Type},
 };
 use router::{api_languaged_routers, api_routers};
-use schemars::JsonSchema;
-use serde::Deserialize;
 
 #[derive(Clone)]
 pub struct AppState {
     pub pool: DatabaseClientPooled,
-}
-
-#[derive(Deserialize, JsonSchema)]
-pub struct Resource {
-    id: i32,
-}
-
-#[derive(Deserialize, JsonSchema)]
-pub struct VersionGroup {
-    version_group: i32,
 }
 
 // #[derive(Deserialize, JsonSchema)]
@@ -171,45 +163,6 @@ fn location_routers() -> ApiRouter<AppState> {
         )
 }
 
-fn move_routers() -> ApiRouter<AppState> {
-    use pokemonle_lib::model::Move;
-
-    async fn get_move_pokemons(
-        State(state): State<AppState>,
-        Path(Resource { id }): Path<Resource>,
-        Query(Language { lang }): Query<Language>,
-        Query(VersionGroup { version_group }): Query<VersionGroup>,
-    ) -> impl IntoApiResponse {
-        Result::from(
-            state
-                .pool
-                .r#move()
-                .get_move_pokemons(id, lang, version_group),
-        )
-    }
-
-    ApiRouter::new().nest(
-        "/moves",
-        api_languaged_routers::<Move, _, _>(|state| state.pool.r#move())
-            .api_route(
-                "/{id}/pokemons",
-                get_with(get_move_pokemons, |op| {
-                    op.tag("move")
-                        .tag("pokemon")
-                        .description("Get a list of pokemons by move")
-                        .response_with::<200, Json<PaginatedResource<Languaged<Pokemon>>>, _>(|o| o)
-                }),
-            )
-            .nest(
-                "/{id}/flavor-text",
-                api_flavor_text_routers_with_transform::<Move, _, _, _>(
-                    |state| state.pool.r#move(),
-                    |op| op.tag("move"),
-                ),
-            ),
-    )
-}
-
 pub fn routers() -> ApiRouter<AppState> {
     use pokemonle_lib::model::{Pokedex, Version, VersionGroup};
 
@@ -226,7 +179,7 @@ pub fn routers() -> ApiRouter<AppState> {
         .merge(item_routers())
         .merge(language::routers())
         .merge(location_routers())
-        .merge(move_routers())
+        .merge(r#move::routers())
         .nest(
             "/pokedexes",
             api_routers::<Pokedex, _, _>(|state| state.pool.pokedex()),

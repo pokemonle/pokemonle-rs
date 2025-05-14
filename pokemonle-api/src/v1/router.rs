@@ -18,34 +18,11 @@ use pokemonle_lib::{
 };
 use pokemonle_trait::StructName;
 use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
-use crate::v1::Resource;
+use crate::v1::{Language, Resource, SearchQuery};
 
 use super::AppState;
-
-fn default_language() -> i32 {
-    12
-}
-
-#[derive(Deserialize, JsonSchema)]
-pub struct Language {
-    #[serde(default = "default_language")]
-    pub lang: i32,
-}
-
-impl Default for Language {
-    fn default() -> Self {
-        Self {
-            lang: default_language(),
-        }
-    }
-}
-
-#[derive(Deserialize, JsonSchema)]
-struct SearchQuery {
-    q: Option<String>,
-}
 
 pub fn api_routers<T, H, F>(handler_fn: F) -> ApiRouter<AppState>
 where

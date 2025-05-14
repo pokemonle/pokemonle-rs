@@ -10,8 +10,8 @@ use pokemonle_lib::{
 };
 
 use super::{
-    router::{api_flavor_text_routers_with_transform, api_languaged_routers, Language},
-    AppState, Resource,
+    router::{api_flavor_text_routers_with_transform, api_languaged_routers},
+    AppState, Language, Resource,
 };
 
 async fn get_ablitity_pokemons(
