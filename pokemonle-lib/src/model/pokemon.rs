@@ -154,6 +154,34 @@ pub struct PokemonType {
     pub slot: i32,
 }
 
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    Serialize,
+    Deserialize,
+    JsonSchema,
+    StructName,
+    OperationIo,
+)]
+pub enum PokemonMoveMethod {
+    LevelUp = 1,
+    Egg = 2,
+    Tutor = 3,
+    Machine = 4,
+    StadiumSurfingPikachu = 5,
+    LightBallEgg = 6,
+    ColossenumPurification = 7,
+    XdShadow = 8,
+    XdPurification = 9,
+    FormChange = 10,
+    ZygardeCube = 11,
+    Unknown,
+}
+
 #[derive(Queryable, OperationIo, StructName, Serialize, JsonSchema, Clone)]
 #[pokemonle(tags = ["pokemon"])]
 pub struct PokemonDetail {

@@ -5,14 +5,27 @@ use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
 use axum::Json;
 use pokemonle_lib::database::pagination::PaginatedResource;
-use pokemonle_lib::model::{Ability, PokemonColor, PokemonHabitat, PokemonShape};
+use pokemonle_lib::model::{Ability, Languaged, Move, PokemonColor, PokemonHabitat, PokemonShape};
 
 use crate::v1::router::{
     api_flavor_text_routers_with_transform, api_languaged_routers, api_routers,
 };
 
 use super::router::Language;
-use super::{AppState, Resource};
+use super::{AppState, Resource, VersionGroup};
+
+async fn get_pokemon_moves(
+    State(state): State<AppState>,
+    Path(Resource { id }): Path<Resource>,
+    Query(Language { lang }): Query<Language>,
+    Query(VersionGroup { version_group }): Query<VersionGroup>,
+) -> impl IntoApiResponse {
+    let moves = state
+        .pool
+        .pokemon()
+        .get_pokemon_moves(id, lang, version_group);
+    (StatusCode::OK, Json(moves))
+}
 
 pub fn routers() -> ApiRouter<AppState> {
     use pokemonle_lib::model::{Pokemon, PokemonSpecies};
@@ -24,7 +37,13 @@ pub fn routers() -> ApiRouter<AppState> {
         )
         .nest(
             "/pokemon",
-            api_languaged_routers::<Pokemon, _, _>(|state| state.pool.pokemon()),
+            api_languaged_routers::<Pokemon, _, _>(|state| state.pool.pokemon()).api_route(
+                "/{id}/moves",
+                get_with(get_pokemon_moves, |op| {
+                    op.tag("pokemon")
+                        .response_with::<200, Json<PaginatedResource<Languaged<Move>>>, _>(|o| o)
+                }),
+            ),
         )
         .nest(
             "/pokemon-colors",

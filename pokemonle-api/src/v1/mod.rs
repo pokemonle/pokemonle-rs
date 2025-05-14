@@ -36,6 +36,11 @@ pub struct Resource {
     id: i32,
 }
 
+#[derive(Deserialize, JsonSchema)]
+pub struct VersionGroup {
+    version_group: i32,
+}
+
 // #[derive(Deserialize, JsonSchema)]
 // pub struct Version {
 //     id: i32,
@@ -170,20 +175,42 @@ fn location_routers() -> ApiRouter<AppState> {
 
 fn move_routers() -> ApiRouter<AppState> {
     use pokemonle_lib::model::Move;
+
+    async fn get_move_pokemons(
+        State(state): State<AppState>,
+        Path(Resource { id }): Path<Resource>,
+        Query(Language { lang }): Query<Language>,
+        Query(VersionGroup { version_group }): Query<VersionGroup>,
+    ) -> impl IntoApiResponse {
+        let pokemons = state
+            .pool
+            .r#move()
+            .get_move_pokemons(id, lang, version_group);
+        (StatusCode::OK, Json(pokemons))
+    }
+
     ApiRouter::new().nest(
         "/moves",
-        api_languaged_routers::<Move, _, _>(|state| state.pool.r#move()).nest(
-            "/{id}/flavor-text",
-            api_flavor_text_routers_with_transform::<Move, _, _, _>(
-                |state| state.pool.r#move(),
-                |op| op.tag("move"),
+        api_languaged_routers::<Move, _, _>(|state| state.pool.r#move())
+            .api_route(
+                "/{id}/pokemons",
+                get_with(get_move_pokemons, |op| {
+                    op.tag("move")
+                        .tag("pokemon")
+                        .description("Get a list of pokemons by move")
+                        .response_with::<200, Json<PaginatedResource<Languaged<Pokemon>>>, _>(|o| {
+                            o.description("example")
+                        })
+                }),
+            )
+            .nest(
+                "/{id}/flavor-text",
+                api_flavor_text_routers_with_transform::<Move, _, _, _>(
+                    |state| state.pool.r#move(),
+                    |op| op.tag("move"),
+                ),
             ),
-        ),
     )
-    // .nest(
-    //     "/move-targets",
-    //     api_routers::<MoveTarget, _, _>(|state| state.pool.move_target()),
-    // )
 }
 
 async fn get_ablitity_pokemons(
@@ -253,6 +280,6 @@ pub fn routers() -> ApiRouter<AppState> {
         )
         .nest(
             "/version-groups",
-            api_routers::<VersionGroup, _, _>(|state| state.pool.version_group()),
+            api_languaged_routers::<VersionGroup, _, _>(|state| state.pool.version_group()),
         )
 }

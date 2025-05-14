@@ -5,6 +5,7 @@ mod evolution;
 mod item;
 mod language;
 mod location;
+mod r#move;
 mod pokemon;
 
 use crate::config::Config;
@@ -281,9 +282,9 @@ mod version {
 }
 
 mod version_group {
-    use crate::database::schema::version_groups;
-    use crate::impl_database_handler;
+    use crate::database::schema::{version_group_names, version_groups};
     use crate::model::VersionGroup;
+    use crate::{impl_database_handler, impl_database_locale_handler};
 
     impl_database_handler!(
         VersionGroupHandler,
@@ -291,34 +292,15 @@ mod version_group {
         version_groups::dsl::version_groups,
         version_groups::dsl::id
     );
-}
-
-mod r#move {
-    use crate::database::schema::{move_flavor_text, move_names, moves};
-    use crate::model::Move;
-    use crate::{
-        impl_database_flavor_text_handler, impl_database_handler, impl_database_locale_handler,
-    };
-
-    impl_database_handler!(MoveHandler, Move, moves::dsl::moves, moves::dsl::id);
 
     impl_database_locale_handler!(
-        MoveHandler,
-        Move,
-        moves::dsl::moves,
-        moves::dsl::id,
-        move_names::dsl::move_names,
-        move_names::dsl::move_id,
-        move_names::dsl::name,
-        move_names::dsl::local_language_id
-    );
-
-    impl_database_flavor_text_handler!(
-        MoveHandler,
-        move_flavor_text::dsl::move_flavor_text,
-        move_flavor_text::dsl::move_id,
-        move_flavor_text::dsl::flavor_text,
-        move_flavor_text::dsl::language_id,
-        move_flavor_text::dsl::version_group_id
+        VersionGroupHandler,
+        VersionGroup,
+        version_groups::dsl::version_groups,
+        version_groups::dsl::id,
+        version_group_names::dsl::version_group_names,
+        version_group_names::dsl::version_group_id,
+        version_group_names::dsl::name,
+        version_group_names::dsl::local_language_id
     );
 }

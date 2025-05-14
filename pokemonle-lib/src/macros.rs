@@ -352,3 +352,117 @@ macro_rules! impl_database_flavor_text_handler {
         }
     };
 }
+
+#[macro_export]
+macro_rules! impl_fetch_related_by_foreign_key {
+    (
+        // 要实现方法的 Handler 结构体名称
+        // 例如: PokemonSpeciesHandler
+        handler_struct: $handler_struct:ident,
+        // 生成的新公开方法的名称
+        // 例如: get_pokemon_forms
+        method_name: $method_name:ident,
+        // "父"实体 ID 的参数名称和类型
+        // 例如: species_id: i32
+        parent_id_arg: $parent_id_arg_name:ident: $parent_id_arg_type:ty,
+        // 要获取的关联实体的 Diesel 模型/类型
+        // 例如: crate::model::Pokemon
+        related_resource_model: $related_resource_model:ty,
+        // 关联实体表 DSL 的路径
+        // 例如: crate::schema::pokemon::dsl::pokemon
+        related_table_dsl: $related_table_dsl:path,
+        // related_table_dsl 中引用父实体 ID 的外键列 DSL 路径
+        // 例如: crate::schema::pokemon::dsl::species_id
+        foreign_key_on_related_table: $foreign_key_on_related_table:path
+    ) => {
+        impl $handler_struct {
+            /// 根据外键获取关联资源列表 (一对多关系).
+            /// 例如，根据给定的 PokemonSpecies ID 获取所有 Pokemon (形态).
+            pub fn $method_name(
+                &self,
+                $parent_id_arg_name: $parent_id_arg_type,
+            ) -> Result<Vec<$related_resource_model>, diesel::result::Error> {
+                use diesel::prelude::*;
+
+                // 假设 self.connection 可用并且是一个 Pool, 类似于其他的 handlers
+                let mut conn = self.connection.get()?;
+
+                // $related_table_dsl 应该是表标识符本身
+                // (例如: crate::schema::pokemon::dsl::pokemon)
+                // $foreign_key_on_related_table 应该是列标识符
+                // (例如: crate::schema::pokemon::dsl::species_id).
+                $related_table_dsl
+                    .filter($foreign_key_on_related_table.eq($parent_id_arg_name))
+                    .select(<$related_resource_model>::as_select())
+                    .load::<$related_resource_model>(&mut conn)
+            }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! impl_fetch_related_through_join_table {
+    (
+        // 要实现方法的 Handler 结构体名称
+        // 例如: PokemonHandler
+        handler_struct: $handler_struct:ident,
+        // 生成的新公开方法的名称
+        // 例如: get_moves_for_pokemon
+        method_name: $method_name:ident,
+        // "主"实体 ID 的参数名称和类型
+        // 例如: pokemon_id: i32
+        primary_id_arg: $primary_id_arg_name:ident: $primary_id_arg_type:ty,
+        // 目标关联实体的 Diesel 模型/类型
+        // 例如: crate::model::Move
+        related_resource_model: $related_resource_model:ty,
+
+        // --- 连接表 (Join Table) 详情 ---
+        // 连接表 DSL 的路径
+        // 例如: crate::schema::pokemon_moves::dsl::pokemon_moves
+        join_table_dsl: $join_table_dsl:path,
+        // 连接表中引用主实体的外键列 DSL 路径
+        // 例如: crate::schema::pokemon_moves::dsl::pokemon_id
+        join_table_fk_to_primary: $join_table_fk_to_primary:path,
+        // 连接表中引用关联实体的外键列 DSL 路径
+        // 例如: crate::schema::pokemon_moves::dsl::move_id
+        join_table_fk_to_related: $join_table_fk_to_related:path,
+
+        // --- 目标关联表 (Related/Target Table) 详情 ---
+        // 目标关联表 DSL 的路径
+        // 例如: crate::schema::moves::dsl::moves
+        related_table_dsl: $related_table_dsl:path,
+        // 目标关联表的主键 (或用于连接的唯一键) DSL 路径
+        // 例如: crate::schema::moves::dsl::id
+        related_table_pk: $related_table_pk:path
+    ) => {
+        impl $handler_struct {
+            /// 通过连接表获取关联资源列表 (多对多关系).
+            /// 例如，根据给定的 Pokemon ID 获取其所有 Moves (招式).
+            pub fn $method_name(
+                &self,
+                $primary_id_arg_name: $primary_id_arg_type,
+            ) -> Result<Vec<$related_resource_model>, diesel::result::Error> {
+                use diesel::prelude::*;
+
+                let mut conn = self.connection.get()?;
+
+                // $join_table_dsl, $related_table_dsl 是表标识符
+                // $join_table_fk_to_primary, $join_table_fk_to_related, $related_table_pk 是列标识符.
+
+                // 查询示例:
+                // pokemon_moves.inner_join(moves.on(pokemon_moves::move_id.eq(moves::id)))
+                //              .filter(pokemon_moves::pokemon_id.eq(given_pokemon_id))
+                //              .select(Move::as_select())
+                //              .load::<Move>(&mut conn)
+
+                $join_table_dsl
+                    .inner_join(
+                        $related_table_dsl.on($join_table_fk_to_related.eq($related_table_pk)),
+                    )
+                    .filter($join_table_fk_to_primary.eq($primary_id_arg_name))
+                    .select(<$related_resource_model>::as_select())
+                    .load::<$related_resource_model>(&mut conn)
+            }
+        }
+    };
+}

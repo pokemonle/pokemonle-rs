@@ -436,6 +436,25 @@ diesel::table! {
 }
 
 diesel::table! {
+    pokemon_move_methods (id) {
+        id -> Integer,
+        identifier -> Text,
+    }
+}
+
+diesel::table! {
+    pokemon_moves (pokemon_id, version_group_id, move_id, pokemon_move_method_id, level) {
+        pokemon_id -> Integer,
+        version_group_id -> Integer,
+        move_id -> Integer,
+        pokemon_move_method_id -> Integer,
+        level -> Integer,
+        order -> Nullable<Integer>,
+        mastery -> Nullable<Integer>,
+    }
+}
+
+diesel::table! {
     pokemon_shapes (id) {
         id -> Integer,
         identifier -> Text,
@@ -534,6 +553,14 @@ diesel::table! {
 }
 
 diesel::table! {
+    version_group_names (version_group_id, local_language_id) {
+        version_group_id -> Integer,
+        local_language_id -> Integer,
+        name -> Text,
+    }
+}
+
+diesel::table! {
     version_groups (id) {
         id -> Integer,
         identifier -> Text,
@@ -616,6 +643,10 @@ diesel::joinable!(pokemon_egg_groups -> pokemon_species (species_id));
 diesel::joinable!(pokemon_evolution -> evolution_triggers (evolution_trigger_id));
 diesel::joinable!(pokemon_evolution -> locations (location_id));
 diesel::joinable!(pokemon_evolution -> types (party_type_id));
+diesel::joinable!(pokemon_moves -> moves (move_id));
+diesel::joinable!(pokemon_moves -> pokemon (pokemon_id));
+diesel::joinable!(pokemon_moves -> pokemon_move_methods (pokemon_move_method_id));
+diesel::joinable!(pokemon_moves -> version_groups (version_group_id));
 diesel::joinable!(pokemon_species -> evolution_chains (evolution_chain_id));
 diesel::joinable!(pokemon_species -> generations (generation_id));
 diesel::joinable!(pokemon_species -> growth_rates (growth_rate_id));
@@ -636,6 +667,8 @@ diesel::joinable!(type_names -> languages (local_language_id));
 diesel::joinable!(type_names -> types (type_id));
 diesel::joinable!(types -> generations (generation_id));
 diesel::joinable!(types -> move_damage_classes (damage_class_id));
+diesel::joinable!(version_group_names -> languages (local_language_id));
+diesel::joinable!(version_group_names -> version_groups (version_group_id));
 diesel::joinable!(version_groups -> generations (generation_id));
 diesel::joinable!(version_names -> languages (local_language_id));
 diesel::joinable!(version_names -> versions (version_id));
@@ -691,6 +724,8 @@ diesel::allow_tables_to_appear_in_same_query!(
     pokemon_egg_groups,
     pokemon_evolution,
     pokemon_habitats,
+    pokemon_move_methods,
+    pokemon_moves,
     pokemon_shapes,
     pokemon_species,
     pokemon_species_flavor_text,
@@ -701,6 +736,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     regions,
     type_names,
     types,
+    version_group_names,
     version_groups,
     version_names,
     versions,

@@ -81,4 +81,24 @@ impl<T> PaginatedResource<T> {
             total_items: length,
         }
     }
+
+    pub fn map<U>(self, f: impl Fn(T) -> U) -> PaginatedResource<U> {
+        PaginatedResource {
+            data: self.data.into_iter().map(f).collect(),
+            page: self.page,
+            per_page: self.per_page,
+            total_pages: self.total_pages,
+            total_items: self.total_items,
+        }
+    }
+
+    pub fn map_data<U>(self, f: impl Fn(Vec<T>) -> Vec<U>) -> PaginatedResource<U> {
+        PaginatedResource {
+            data: f(self.data),
+            page: self.page,
+            per_page: self.per_page,
+            total_pages: self.total_pages,
+            total_items: self.total_items,
+        }
+    }
 }

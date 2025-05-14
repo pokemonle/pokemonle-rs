@@ -33,7 +33,17 @@ pub struct ItemFlingEffect {
     pub identifier: String,
 }
 
-#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
+#[derive(
+    Identifiable,
+    Queryable,
+    Selectable,
+    Serialize,
+    Debug,
+    Clone,
+    JsonSchema,
+    StructName,
+    OperationIo,
+)]
 #[diesel(table_name = schema::items)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
 #[pokemonle(tags = ["item"])]
@@ -44,4 +54,25 @@ pub struct Item {
     pub cost: i32,
     pub fling_effect_id: Option<i32>,
     pub fling_power: Option<i32>,
+}
+
+#[derive(
+    Identifiable,
+    Associations,
+    Queryable,
+    Selectable,
+    Serialize,
+    Debug,
+    Clone,
+    JsonSchema,
+    StructName,
+    OperationIo,
+)]
+#[diesel(table_name = schema::item_names,belongs_to(Item),primary_key(item_id, local_language_id))]
+#[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
+#[pokemonle(tags = ["item"])]
+pub struct ItemName {
+    pub item_id: i32,
+    pub local_language_id: i32,
+    pub name: String,
 }

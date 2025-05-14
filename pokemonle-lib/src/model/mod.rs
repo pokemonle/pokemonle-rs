@@ -28,8 +28,8 @@ use serde::{Deserialize, Serialize};
 #[pokemonle(tags = ["generation"])]
 pub struct Generation {
     pub id: i32,
-    pub main_region_id: i32,
     pub identifier: String,
+    pub main_region_id: i32,
 }
 
 #[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
@@ -55,7 +55,17 @@ pub struct LanguageName {
     pub name: String,
 }
 
-#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
+#[derive(
+    Identifiable,
+    Queryable,
+    Selectable,
+    Serialize,
+    Debug,
+    Clone,
+    JsonSchema,
+    StructName,
+    OperationIo,
+)]
 #[diesel(table_name = schema::version_groups)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
 #[pokemonle(tags = ["version", "version-group"])]
@@ -66,22 +76,26 @@ pub struct VersionGroup {
     pub order: i32,
 }
 
-#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
+#[derive(
+    Identifiable,
+    Queryable,
+    Selectable,
+    Associations,
+    Serialize,
+    Deserialize,
+    Debug,
+    Clone,
+    JsonSchema,
+    StructName,
+    OperationIo,
+)]
 #[diesel(table_name = schema::versions)]
+#[diesel(belongs_to(VersionGroup))]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
 #[pokemonle(tags = ["version"])]
 pub struct Version {
     pub id: i32,
     pub version_group_id: i32,
-    pub identifier: String,
-}
-
-#[derive(Queryable, Selectable, Serialize, Debug, Clone, JsonSchema, StructName, OperationIo)]
-#[diesel(table_name = schema::move_damage_classes)]
-#[diesel(check_for_backend(diesel::sqlite::Sqlite, diesel::pg::Pg))]
-#[pokemonle(tags = ["move"])]
-pub struct MoveDamageClass {
-    pub id: i32,
     pub identifier: String,
 }
 
@@ -198,9 +212,26 @@ pub struct PokedexVersionGroup {
 
 define_extra_struct!(Languaged { name: String });
 
+impl<T> Languaged<T>
+where
+    T: StructName,
+{
+    pub fn new(item: T, name: String) -> Self {
+        Self { name, item }
+    }
+
+    pub fn new_from_tuple(tuple: (T, String)) -> Self {
+        Self::new(tuple.0, tuple.1)
+    }
+}
+
 define_extra_struct!(WithSlot {
     slot: i32,
     is_hidden: bool
+});
+
+define_extra_struct!(WithVersions {
+    versions: Vec<Languaged<Version>>
 });
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema, OperationIo)]

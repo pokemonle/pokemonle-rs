@@ -6,7 +6,7 @@ use crate::database::schema::{
     pokemon_color_names, pokemon_species_flavor_text, pokemon_species_names,
 };
 use crate::model::{
-    Ability, Languaged, Pokemon, PokemonAbility, PokemonColor, PokemonHabitat, PokemonShape,
+    Ability, Languaged, Move, Pokemon, PokemonAbility, PokemonColor, PokemonHabitat, PokemonShape,
     PokemonSpecies, WithSlot,
 };
 use crate::{
@@ -113,6 +113,36 @@ impl PokemonHandler {
                 })
                 .collect(),
         )
+    }
+
+    pub fn get_pokemon_moves(
+        &self,
+        _pokemon_id: i32,
+        _lang: i32,
+        _version_group_id: i32,
+    ) -> PaginatedResource<Languaged<Move>> {
+        use crate::database::schema::move_names;
+        use crate::database::schema::moves::dsl::*;
+        use crate::database::schema::pokemon_moves;
+        use diesel::prelude::*;
+
+        let query = pokemon_moves::table
+            .filter(pokemon_moves::pokemon_id.eq(_pokemon_id))
+            .filter(pokemon_moves::version_group_id.eq(_version_group_id))
+            .select(pokemon_moves::move_id);
+
+        let items = moves
+            .inner_join(move_names::table)
+            .filter(id.eq_any(query))
+            .filter(move_names::local_language_id.eq(_lang))
+            .select((Move::as_select(), move_names::name))
+            .load::<(Move, String)>(&mut self.connection.get().unwrap())
+            .expect("Error loading pokemon moves")
+            .into_iter()
+            .map(Languaged::new_from_tuple)
+            .collect();
+
+        PaginatedResource::new_from_vec(items)
     }
 }
 
