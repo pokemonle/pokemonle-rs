@@ -5,11 +5,11 @@ use thiserror::Error;
 
 #[derive(Error, Debug, OperationIo)]
 pub enum Error {
-    #[error("ResourceNotFound")]
-    ResourceNotFound(String),
-
     #[error(transparent)]
     Crypto(#[from] pokemonle_lib::crypto::Error),
+
+    #[error(transparent)]
+    PokemonleLib(#[from] pokemonle_lib::error::Error),
 }
 
 impl IntoResponse for Error {
@@ -20,16 +20,42 @@ impl IntoResponse for Error {
         }
 
         match self {
-            Error::ResourceNotFound(s) => {
-                let err = ErrResponse { error: s };
-                (StatusCode::NOT_FOUND, Json(err)).into_response()
-            }
             Error::Crypto(e) => {
                 let err = ErrResponse {
                     error: e.to_string(),
                 };
                 (StatusCode::INTERNAL_SERVER_ERROR, Json(err)).into_response()
             }
+            Error::PokemonleLib(e) => {
+                let err = ErrResponse {
+                    error: e.to_string(),
+                };
+                (StatusCode::INTERNAL_SERVER_ERROR, Json(err)).into_response()
+            }
+        }
+    }
+}
+
+#[derive(Debug, OperationIo)]
+pub struct Result<T>(pub std::result::Result<T, Error>);
+
+impl<T> IntoResponse for Result<T>
+where
+    T: Serialize,
+{
+    fn into_response(self) -> axum::response::Response {
+        match self.0 {
+            Ok(data) => (StatusCode::OK, Json(data)).into_response(),
+            Err(e) => e.into_response(),
+        }
+    }
+}
+
+impl<T> From<pokemonle_lib::error::Result<T>> for Result<T> {
+    fn from(value: pokemonle_lib::error::Result<T>) -> Self {
+        match value {
+            Ok(data) => Result(Ok(data)),
+            Err(e) => Result(Err(Error::PokemonleLib(e))),
         }
     }
 }

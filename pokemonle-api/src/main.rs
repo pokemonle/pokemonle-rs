@@ -37,9 +37,8 @@ async fn main() {
 
     let state = {
         let pool = pokemonle_lib::database::handler::DatabaseClientPooled::new().unwrap();
-        let crypto = Arc::new(pokemonle_lib::crypto::new());
 
-        v1::AppState { pool, crypto }
+        v1::AppState { pool }
     };
 
     let mut api = OpenApi {

@@ -1,3 +1,4 @@
+use crate::error::Result;
 use aide::{
     axum::{routing::get_with, ApiRouter, IntoApiResponse},
     transform::TransformOperation,
@@ -6,8 +7,6 @@ use aide::{
 
 use axum::{
     extract::{Path, Query, State},
-    http::StatusCode,
-    response::IntoResponse,
     Json,
 };
 use pokemonle_lib::{
@@ -21,7 +20,7 @@ use pokemonle_trait::StructName;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{error::Error, v1::Resource};
+use crate::v1::Resource;
 
 use super::AppState;
 
@@ -78,7 +77,8 @@ where
         H: DatabaseHandler<Resource = T>,
     {
         let handler = handle_fn(state);
-        (StatusCode::OK, Json(handler.get_all_resources(pagination)))
+
+        Result::from(handler.get_all_resources(pagination))
     }
 
     async fn get<T, H>(
@@ -91,18 +91,8 @@ where
         H: DatabaseHandler<Resource = T>,
     {
         let handler = handler_fn(state);
-        let struct_name = T::struct_name();
 
-        match handler.get_resource_by_id(resource.id) {
-            Some(resource) => (StatusCode::OK, Json(resource)).into_response(),
-            None => {
-                let err = Error::ResourceNotFound(format!(
-                    "{} with id {} not found",
-                    struct_name, resource.id
-                ));
-                err.into_response()
-            }
-        }
+        crate::error::Result::from(handler.get_resource_by_id(resource.id))
     }
 
     ApiRouter::new()
@@ -159,29 +149,7 @@ where
     {
         let handler = handle_fn(state);
 
-        let PaginatedResource {
-            data,
-            page,
-            per_page,
-            total_items,
-            total_pages,
-        } = handler.get_all_resources_with_locale(pagination, lang, search.q);
-        (
-            StatusCode::OK,
-            Json(PaginatedResource {
-                data: data
-                    .into_iter()
-                    .map(|(resource, name)| Languaged {
-                        item: resource,
-                        name,
-                    })
-                    .collect(),
-                page,
-                per_page,
-                total_items,
-                total_pages,
-            }),
-        )
+        Result::from(handler.get_all_resources_with_locale(pagination, lang, search.q))
     }
 
     async fn get<T, H>(
@@ -195,25 +163,8 @@ where
         H: DatabaseHandlerWithLocale<Resource = T>,
     {
         let handler = handler_fn(state);
-        let struct_name = T::struct_name();
 
-        match handler.get_resource_by_id_with_locale(resource.id, lang) {
-            Some(resource) => (
-                StatusCode::OK,
-                Json(Languaged {
-                    item: resource.0,
-                    name: resource.1,
-                }),
-            )
-                .into_response(),
-            None => {
-                let err = Error::ResourceNotFound(format!(
-                    "{} with id {} not found",
-                    struct_name, resource.id
-                ));
-                err.into_response()
-            }
-        }
+        Result::from(handler.get_resource_by_id_with_locale(resource.id, lang))
     }
 
     ApiRouter::new()
@@ -259,8 +210,7 @@ where
     {
         let handler = handle_fn(state);
 
-        let resp = handler.get_all_resources_with_flavor_text(resource.id, pagination, lang);
-        (StatusCode::OK, Json(resp))
+        Result::from(handler.get_all_resources_with_flavor_text(resource.id, pagination, lang))
     }
 
     async fn get<H>(
@@ -275,16 +225,7 @@ where
     {
         let handler = handler_fn(state);
 
-        match handler.get_latest_flavor_text(resource.id, lang) {
-            Some(resource) => (StatusCode::OK, Json(resource)).into_response(),
-            None => {
-                let err = Error::ResourceNotFound(format!(
-                    "flavor text with id {} not found",
-                    resource.id
-                ));
-                err.into_response()
-            }
-        }
+        Result::from(handler.get_latest_flavor_text(resource.id, lang))
     }
 
     ApiRouter::new()

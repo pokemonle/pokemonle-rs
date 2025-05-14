@@ -1,8 +1,8 @@
+use crate::error::Result;
 use aide::axum::routing::get_with;
 use aide::axum::{ApiRouter, IntoApiResponse};
 use aide::transform::TransformOperation;
 use axum::extract::{Path, Query, State};
-use axum::http::StatusCode;
 use axum::Json;
 use pokemonle_lib::database::pagination::PaginatedResource;
 use pokemonle_lib::model::{Ability, Languaged, Move, PokemonColor, PokemonHabitat, PokemonShape};
@@ -20,11 +20,12 @@ async fn get_pokemon_moves(
     Query(Language { lang }): Query<Language>,
     Query(VersionGroup { version_group }): Query<VersionGroup>,
 ) -> impl IntoApiResponse {
-    let moves = state
-        .pool
-        .pokemon()
-        .get_pokemon_moves(id, lang, version_group);
-    (StatusCode::OK, Json(moves))
+    Result::from(
+        state
+            .pool
+            .pokemon()
+            .get_pokemon_moves(id, lang, version_group),
+    )
 }
 
 pub fn routers() -> ApiRouter<AppState> {
@@ -80,9 +81,8 @@ pub fn routers() -> ApiRouter<AppState> {
 /// 获取所有宝可梦的标识符列表
 ///
 /// 返回一个包含所有宝可梦标识符的数组
-async fn get_pokemon_identifiers(State(state): State<AppState>) -> Json<Vec<String>> {
-    let identifiers = state.pool.pokemon().get_all_identifiers();
-    Json(identifiers)
+async fn get_pokemon_identifiers(State(state): State<AppState>) -> impl IntoApiResponse {
+    Result::from(state.pool.pokemon().get_all_identifiers())
 }
 
 fn get_pokemon_identifiers_docs(op: TransformOperation) -> TransformOperation {
@@ -95,6 +95,5 @@ async fn get_pokemon_abilities(
     Path(Resource { id }): Path<Resource>,
     Query(Language { lang }): Query<Language>,
 ) -> impl IntoApiResponse {
-    let abilities = state.pool.pokemon().get_pokemon_abilities(id, lang);
-    (StatusCode::OK, Json(abilities))
+    Result::from(state.pool.pokemon().get_pokemon_abilities(id, lang))
 }

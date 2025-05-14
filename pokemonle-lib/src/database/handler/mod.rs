@@ -9,12 +9,13 @@ mod r#move;
 mod pokemon;
 
 use crate::config::Config;
-use crate::model::ResourceDescription;
+use crate::model::{Languaged, ResourceDescription};
 use crate::{impl_handlers, prelude::*};
 use diesel::migration::{MigrationVersion, Result as MigrationResult};
 use diesel::r2d2::{ConnectionManager, Pool};
 use diesel::{Connection, MultiConnection, PgConnection, QueryResult, SqliteConnection};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
+use pokemonle_trait::StructName;
 use std::sync::{Mutex, Once};
 use tracing::debug;
 
@@ -55,23 +56,23 @@ pub trait DatabaseHandler {
     fn get_all_resources(
         &self,
         pagination: super::pagination::Paginated,
-    ) -> PaginatedResource<Self::Resource>;
-    fn get_resource_by_id(&self, resource_id: i32) -> Option<Self::Resource>;
+    ) -> Result<PaginatedResource<Self::Resource>>;
+    fn get_resource_by_id(&self, resource_id: i32) -> Result<Self::Resource>;
 }
 
 pub trait DatabaseHandlerWithLocale {
-    type Resource;
+    type Resource: StructName;
     fn get_all_resources_with_locale(
         &self,
         pagination: super::pagination::Paginated,
         locale_id: i32,
         query: Option<String>,
-    ) -> PaginatedResource<(Self::Resource, String)>;
+    ) -> Result<PaginatedResource<Languaged<Self::Resource>>>;
     fn get_resource_by_id_with_locale(
         &self,
         resource_id: i32,
         locale_id: i32,
-    ) -> Option<(Self::Resource, String)>;
+    ) -> Result<Languaged<Self::Resource>>;
 }
 
 pub trait DatabaseHandlerWithFlavorText {
@@ -80,13 +81,13 @@ pub trait DatabaseHandlerWithFlavorText {
         resource_id: i32,
         pagination: super::pagination::Paginated,
         locale_id: i32,
-    ) -> PaginatedResource<ResourceDescription>;
+    ) -> Result<PaginatedResource<ResourceDescription>>;
 
     fn get_latest_flavor_text(
         &self,
         resource_id: i32,
         locale_id: i32,
-    ) -> Option<ResourceDescription>;
+    ) -> Result<ResourceDescription>;
 }
 
 #[derive(Clone)]

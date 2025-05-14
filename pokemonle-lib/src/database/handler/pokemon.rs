@@ -9,6 +9,7 @@ use crate::model::{
     Ability, Languaged, Move, Pokemon, PokemonAbility, PokemonColor, PokemonHabitat, PokemonShape,
     PokemonSpecies, WithSlot,
 };
+use crate::prelude::*;
 use crate::{
     impl_database_flavor_text_handler, impl_database_handler, impl_database_locale_handler,
 };
@@ -21,17 +22,17 @@ impl_database_handler!(
 );
 
 impl PokemonHandler {
-    pub fn get_all_identifiers(&self) -> Vec<String> {
+    pub fn get_all_identifiers(&self) -> Result<Vec<String>> {
         use crate::database::schema::pokemon::dsl::*;
         use diesel::prelude::*;
         pokemon
             .select(identifier)
-            .load::<String>(&mut self.connection.get().unwrap())
-            .expect("Error loading pokemon identifiers")
+            .load::<String>(&mut self.connection.get().map_err(Error::R2D2PoolError)?)
+            .map_err(Error::DieselError)
     }
 
     // get a random pokemon from given generation array
-    pub fn get_random_pokemon(&self, generations: &[usize]) -> Option<PokemonSpecies> {
+    pub fn get_random_pokemon(&self, generations: &[usize]) -> Result<PokemonSpecies> {
         use crate::database::schema::pokemon_species::dsl::*;
         use diesel::prelude::*;
         define_sql_function!(fn random() -> Text);
@@ -43,14 +44,14 @@ impl PokemonHandler {
             .filter(generation_id.eq_any(gens))
             .order(random())
             .first::<PokemonSpecies>(&mut self.connection.get().unwrap())
-            .ok()
+            .map_err(Error::DieselError)
     }
     // list pokemons from pokemon_abilities table with given ability_id
     pub fn list_by_ability(
         &self,
         _ability_id: i32,
         _lang: i32,
-    ) -> PaginatedResource<Languaged<Pokemon>> {
+    ) -> Result<PaginatedResource<Languaged<Pokemon>>> {
         use crate::database::schema::pokemon;
         use crate::database::schema::pokemon_abilities::dsl::*;
         use crate::database::schema::pokemon_species_names;
@@ -59,7 +60,8 @@ impl PokemonHandler {
         let query = pokemon_abilities
             .select(pokemon_id)
             .filter(ability_id.eq(_ability_id));
-        let pokemons = pokemon::table
+
+        pokemon::table
             .filter(pokemon::id.eq_any(query))
             .inner_join(
                 pokemon_species_names::table
@@ -68,26 +70,28 @@ impl PokemonHandler {
             .filter(pokemon_species_names::local_language_id.eq(_lang))
             .select((Pokemon::as_select(), pokemon_species_names::name))
             .load::<(Pokemon, String)>(&mut self.connection.get().unwrap())
-            .expect("Error loading pokemons");
-        PaginatedResource::new_from_vec(
-            pokemons
-                .into_iter()
-                .map(|(p, n)| Languaged { item: p, name: n })
-                .collect(),
-        )
+            .map_err(Error::DieselError)
+            .map(|pokemons| {
+                PaginatedResource::new_from_vec(
+                    pokemons
+                        .into_iter()
+                        .map(|(p, n)| Languaged { item: p, name: n })
+                        .collect(),
+                )
+            })
     }
 
     pub fn get_pokemon_abilities(
         &self,
         _pokemon_id: i32,
         _lang: i32,
-    ) -> PaginatedResource<Languaged<WithSlot<Ability>>> {
+    ) -> Result<PaginatedResource<Languaged<WithSlot<Ability>>>> {
         use crate::database::schema::abilities;
         use crate::database::schema::ability_names;
         use crate::database::schema::pokemon_abilities::dsl::*;
         use diesel::prelude::*;
 
-        let items = pokemon_abilities
+        pokemon_abilities
             .inner_join(abilities::table.on(ability_id.eq(abilities::id)))
             .inner_join(ability_names::table.on(abilities::id.eq(ability_names::ability_id)))
             .filter(pokemon_id.eq(_pokemon_id))
@@ -98,21 +102,22 @@ impl PokemonHandler {
                 ability_names::name,
             ))
             .load::<(Ability, PokemonAbility, String)>(&mut self.connection.get().unwrap())
-            .expect("Error loading pokemon abilities");
-
-        PaginatedResource::new_from_vec(
-            items
-                .into_iter()
-                .map(|(a, p, n)| Languaged {
-                    item: WithSlot {
-                        item: a,
-                        slot: p.slot,
-                        is_hidden: p.is_hidden,
-                    },
-                    name: n,
-                })
-                .collect(),
-        )
+            .map_err(Error::DieselError)
+            .map(|items| {
+                PaginatedResource::new_from_vec(
+                    items
+                        .into_iter()
+                        .map(|(a, p, n)| Languaged {
+                            item: WithSlot {
+                                item: a,
+                                slot: p.slot,
+                                is_hidden: p.is_hidden,
+                            },
+                            name: n,
+                        })
+                        .collect(),
+                )
+            })
     }
 
     pub fn get_pokemon_moves(
@@ -120,7 +125,7 @@ impl PokemonHandler {
         _pokemon_id: i32,
         _lang: i32,
         _version_group_id: i32,
-    ) -> PaginatedResource<Languaged<Move>> {
+    ) -> Result<PaginatedResource<Languaged<Move>>> {
         use crate::database::schema::move_names;
         use crate::database::schema::moves::dsl::*;
         use crate::database::schema::pokemon_moves;
@@ -131,18 +136,18 @@ impl PokemonHandler {
             .filter(pokemon_moves::version_group_id.eq(_version_group_id))
             .select(pokemon_moves::move_id);
 
-        let items = moves
+        moves
             .inner_join(move_names::table)
             .filter(id.eq_any(query))
             .filter(move_names::local_language_id.eq(_lang))
             .select((Move::as_select(), move_names::name))
-            .load::<(Move, String)>(&mut self.connection.get().unwrap())
-            .expect("Error loading pokemon moves")
-            .into_iter()
-            .map(Languaged::new_from_tuple)
-            .collect();
-
-        PaginatedResource::new_from_vec(items)
+            .load::<(Move, String)>(&mut self.connection.get().map_err(Error::R2D2PoolError)?)
+            .map_err(Error::DieselError)
+            .map(|items| {
+                PaginatedResource::new_from_vec(
+                    items.into_iter().map(Languaged::new_from_tuple).collect(),
+                )
+            })
     }
 }
 

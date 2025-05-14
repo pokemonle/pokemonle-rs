@@ -69,22 +69,23 @@ macro_rules! impl_database_handler {
             fn get_all_resources(
                 &self,
                 pagination: $crate::database::pagination::Paginated,
-            ) -> $crate::database::pagination::PaginatedResource<Self::Resource> {
+            ) -> $crate::error::Result<
+                $crate::database::pagination::PaginatedResource<Self::Resource>,
+            > {
                 // These imports are needed within the generated function scope
                 use diesel::dsl::count_star;
                 use diesel::prelude::*;
 
-                let resource_name = stringify!($resource); // For error messages
                 let mut conn = self
                     .connection
                     .get()
-                    .expect("Failed to get DB connection from pool");
+                    .map_err($crate::error::Error::R2D2PoolError)?;
 
                 // Use count_star() as per the example
                 let total_items_query = $table.select(count_star());
                 let total_items = total_items_query
                     .first::<i64>(&mut conn)
-                    .expect(&format!("Error counting {}", resource_name));
+                    .map_err($crate::error::Error::DieselError)?;
 
                 let total_pages = pagination.pages(total_items);
 
@@ -95,26 +96,28 @@ macro_rules! impl_database_handler {
 
                 let items = items_query
                     .load::<Self::Resource>(&mut conn) // Load the associated Resource type
-                    .expect(&format!("Error loading {}", resource_name));
+                    .map_err($crate::error::Error::DieselError)?;
 
-                $crate::database::pagination::PaginatedResource {
+                Ok($crate::database::pagination::PaginatedResource {
                     data: items,
                     total_pages,
                     total_items,
                     page: pagination.page,
                     per_page: pagination.per_page,
-                }
+                })
             }
 
-            fn get_resource_by_id(&self, resource_id: i32) -> Option<Self::Resource> {
+            fn get_resource_by_id(
+                &self,
+                resource_id: i32,
+            ) -> $crate::error::Result<Self::Resource> {
                 // These imports are needed within the generated function scope
                 use diesel::prelude::*;
 
-                let resource_name = stringify!($resource); // For error messages
                 let mut conn = self
                     .connection
                     .get()
-                    .expect("Failed to get DB connection from pool");
+                    .map_err($crate::error::Error::R2D2PoolError)?;
 
                 let query = $table
                     .filter($id_column.eq(resource_id)) // Use the ID column path passed to macro
@@ -122,11 +125,7 @@ macro_rules! impl_database_handler {
 
                 query
                     .first::<Self::Resource>(&mut conn) // Load the associated Resource type
-                    .optional() // Turns Err(NotFound) into Ok(None), propagates other errors
-                    .expect(&format!(
-                        "Database error retrieving {} by ID",
-                        resource_name
-                    )) // Panics only on actual DB errors
+                    .map_err($crate::error::Error::DieselError) // Turns Err(NotFound) into Ok(None), propagates other errors
             }
         }
     };
@@ -152,15 +151,15 @@ macro_rules! impl_database_locale_handler {
                 pagination: $crate::database::pagination::Paginated,
                 locale_id: i32,
                 query: Option<String>,
-            ) -> $crate::database::pagination::PaginatedResource<(Self::Resource, String)> {
+            ) -> $crate::error::Result<
+                $crate::database::pagination::PaginatedResource<
+                    $crate::model::Languaged<Self::Resource>,
+                >,
+            > {
                 use diesel::dsl::count_star;
                 use diesel::prelude::*;
 
-                let resource_name = stringify!($resource);
-                let mut conn = self
-                    .connection
-                    .get()
-                    .expect("Failed to get DB connection from pool");
+                let mut conn = self.connection.get()?;
 
                 if let Some(query) = query {
                     let total_items_query = $table
@@ -170,7 +169,7 @@ macro_rules! impl_database_locale_handler {
                         .select(count_star());
                     let total_items = total_items_query
                         .first::<i64>(&mut conn)
-                        .expect(&format!("Error counting {}", resource_name));
+                        .map_err($crate::error::Error::DieselError)?;
 
                     let total_pages = pagination.pages(total_items);
 
@@ -182,21 +181,27 @@ macro_rules! impl_database_locale_handler {
                         .limit(pagination.limit())
                         .offset(pagination.offset())
                         .load::<(Self::Resource, String)>(&mut conn)
-                        .expect(&format!("Error loading {} with locale", resource_name));
+                        .map_err($crate::error::Error::DieselError)?;
 
-                    $crate::database::pagination::PaginatedResource {
-                        data: items,
+                    Ok($crate::database::pagination::PaginatedResource {
+                        data: items
+                            .into_iter()
+                            .map(|(resource, name)| $crate::model::Languaged {
+                                item: resource,
+                                name,
+                            })
+                            .collect(),
                         total_pages,
                         total_items,
                         page: pagination.page,
                         per_page: pagination.per_page,
-                    }
+                    })
                 } else {
                     // Count total items
                     let total_items_query = $table.select(count_star());
                     let total_items = total_items_query
                         .first::<i64>(&mut conn)
-                        .expect(&format!("Error counting {}", resource_name));
+                        .map_err($crate::error::Error::DieselError)?;
 
                     let total_pages = pagination.pages(total_items);
 
@@ -210,15 +215,21 @@ macro_rules! impl_database_locale_handler {
 
                     let items = items_query
                         .load::<(Self::Resource, String)>(&mut conn)
-                        .expect(&format!("Error loading {} with locale", resource_name));
+                        .map_err($crate::error::Error::DieselError)?;
 
-                    $crate::database::pagination::PaginatedResource {
-                        data: items,
+                    Ok($crate::database::pagination::PaginatedResource {
+                        data: items
+                            .into_iter()
+                            .map(|(resource, name)| $crate::model::Languaged {
+                                item: resource,
+                                name,
+                            })
+                            .collect(),
                         total_pages,
                         total_items,
                         page: pagination.page,
                         per_page: pagination.per_page,
-                    }
+                    })
                 }
             }
 
@@ -226,14 +237,13 @@ macro_rules! impl_database_locale_handler {
                 &self,
                 resource_id: i32,
                 locale_id: i32,
-            ) -> Option<(Self::Resource, String)> {
+            ) -> $crate::error::Result<$crate::model::Languaged<Self::Resource>> {
                 use diesel::prelude::*;
 
-                let resource_name = stringify!($resource);
                 let mut conn = self
                     .connection
                     .get()
-                    .expect("Failed to get DB connection from pool");
+                    .map_err($crate::error::Error::R2D2PoolError)?;
 
                 let query = $table
                     .inner_join($names_table.on($id_column.eq($names_id_column)))
@@ -243,11 +253,11 @@ macro_rules! impl_database_locale_handler {
 
                 query
                     .first::<(Self::Resource, String)>(&mut conn)
-                    .optional()
-                    .expect(&format!(
-                        "Database error retrieving {} by ID with locale",
-                        resource_name
-                    ))
+                    .map_err($crate::error::Error::DieselError)
+                    .map(|(resource, name)| $crate::model::Languaged {
+                        item: resource,
+                        name,
+                    })
             }
         }
     };
@@ -269,16 +279,16 @@ macro_rules! impl_database_flavor_text_handler {
                 resource_id: i32,
                 pagination: $crate::database::pagination::Paginated,
                 locale_id: i32,
-            ) -> $crate::database::pagination::PaginatedResource<$crate::model::ResourceDescription>
-            {
+            ) -> $crate::error::Result<
+                $crate::database::pagination::PaginatedResource<$crate::model::ResourceDescription>,
+            > {
                 use diesel::dsl::count_star;
                 use diesel::prelude::*;
 
-                let resource_name = stringify!($resource);
                 let mut conn = self
                     .connection
                     .get()
-                    .expect("Failed to get DB connection from pool");
+                    .map_err($crate::error::Error::R2D2PoolError)?;
 
                 let total_items_query = $flavor_table
                     .filter($flavor_language_column.eq(locale_id))
@@ -286,7 +296,7 @@ macro_rules! impl_database_flavor_text_handler {
                     .select(count_star());
                 let total_items = total_items_query
                     .first::<i64>(&mut conn)
-                    .expect(&format!("Error counting {}", resource_name));
+                    .map_err($crate::error::Error::DieselError)?;
                 let total_pages = pagination.pages(total_items);
 
                 let resources = $flavor_table
@@ -300,7 +310,7 @@ macro_rules! impl_database_flavor_text_handler {
                     .limit(pagination.limit())
                     .offset(pagination.offset())
                     .load::<(String, i32, i32)>(&mut conn)
-                    .expect(&format!("Error loading {} with flavor text", resource_name))
+                    .map_err($crate::error::Error::DieselError)?
                     .into_iter()
                     .map(|(flavor_text, version_group, language)| {
                         $crate::model::ResourceDescription {
@@ -311,25 +321,25 @@ macro_rules! impl_database_flavor_text_handler {
                     })
                     .collect();
 
-                $crate::database::pagination::PaginatedResource {
+                Ok($crate::database::pagination::PaginatedResource {
                     data: resources,
                     total_pages,
                     total_items,
                     page: pagination.page,
                     per_page: pagination.per_page,
-                }
+                })
             }
 
             fn get_latest_flavor_text(
                 &self,
                 resource_id: i32,
                 locale_id: i32,
-            ) -> Option<$crate::model::ResourceDescription> {
+            ) -> $crate::error::Result<$crate::model::ResourceDescription> {
                 use diesel::prelude::*;
                 let mut conn = self
                     .connection
                     .get()
-                    .expect("Failed to get DB connection from pool");
+                    .map_err($crate::error::Error::R2D2PoolError)?;
                 $flavor_table
                     .filter($flavor_language_column.eq(locale_id))
                     .filter($flavor_id_column.eq(resource_id))
@@ -340,7 +350,7 @@ macro_rules! impl_database_flavor_text_handler {
                     ))
                     .order($flavor_version_group_column.desc())
                     .first::<(String, i32, i32)>(&mut conn)
-                    .ok()
+                    .map_err($crate::error::Error::DieselError)
                     .map(|(flavor_text, version_group, language)| {
                         $crate::model::ResourceDescription {
                             description: flavor_text,

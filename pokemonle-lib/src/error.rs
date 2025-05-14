@@ -18,6 +18,9 @@ pub enum Error {
     UnsupportedDatabase(String),
 
     #[error(transparent)]
+    DieselError(#[from] diesel::result::Error),
+
+    #[error(transparent)]
     R2D2PoolError(#[from] diesel::r2d2::PoolError),
 
     #[error(transparent)]

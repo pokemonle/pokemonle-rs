@@ -1,4 +1,3 @@
-mod game;
 mod language;
 mod openapi;
 mod pokemon;
@@ -6,18 +5,16 @@ mod resource;
 mod response;
 mod router;
 
+use crate::error::Result;
 use router::{api_flavor_text_routers_with_transform, Language};
-use std::sync::Arc;
 
 use aide::axum::{routing::get_with, ApiRouter, IntoApiResponse};
 
 use axum::{
     extract::{Path, Query, State},
-    http::StatusCode,
     Json,
 };
 use pokemonle_lib::{
-    crypto::Crypto,
     database::{handler::DatabaseClientPooled, pagination::PaginatedResource},
     model::{Generation, Languaged, Pokemon, PokemonSpecies, Type},
 };
@@ -28,7 +25,6 @@ use serde::Deserialize;
 #[derive(Clone)]
 pub struct AppState {
     pub pool: DatabaseClientPooled,
-    pub crypto: Arc<dyn Crypto>,
 }
 
 #[derive(Deserialize, JsonSchema)]
@@ -128,11 +124,12 @@ fn evolution_routers() -> ApiRouter<AppState> {
         Path(Resource { id }): Path<Resource>,
         Query(Language { lang }): Query<Language>,
     ) -> impl IntoApiResponse {
-        let pokemon_species = state
-            .pool
-            .evolution_chain()
-            .get_pokemon_species_by_evolution_chain_id(id, lang);
-        (StatusCode::OK, Json(pokemon_species))
+        Result::from(
+            state
+                .pool
+                .evolution_chain()
+                .get_pokemon_species_by_evolution_chain_id(id, lang),
+        )
     }
 
     ApiRouter::new()
@@ -182,11 +179,12 @@ fn move_routers() -> ApiRouter<AppState> {
         Query(Language { lang }): Query<Language>,
         Query(VersionGroup { version_group }): Query<VersionGroup>,
     ) -> impl IntoApiResponse {
-        let pokemons = state
-            .pool
-            .r#move()
-            .get_move_pokemons(id, lang, version_group);
-        (StatusCode::OK, Json(pokemons))
+        Result::from(
+            state
+                .pool
+                .r#move()
+                .get_move_pokemons(id, lang, version_group),
+        )
     }
 
     ApiRouter::new().nest(
@@ -218,8 +216,7 @@ async fn get_ablitity_pokemons(
     Path(Resource { id }): Path<Resource>,
     Query(Language { lang }): Query<Language>,
 ) -> impl IntoApiResponse {
-    let pokemons = state.pool.pokemon().list_by_ability(id, lang);
-    (StatusCode::OK, Json(pokemons))
+    Result::from(state.pool.pokemon().list_by_ability(id, lang))
 }
 
 pub fn routers() -> ApiRouter<AppState> {
@@ -252,10 +249,9 @@ pub fn routers() -> ApiRouter<AppState> {
         .merge(contest_routers())
         .merge(encounter_routers())
         .merge(evolution_routers())
-        .nest("/game", game::routers())
         .nest(
             "/generations",
-            api_routers::<Generation, _, _>(|state| state.pool.generation()),
+            api_languaged_routers::<Generation, _, _>(|state| state.pool.generation()),
         )
         .merge(item_routers())
         .nest(
