@@ -1,3 +1,4 @@
+mod ability;
 mod language;
 mod openapi;
 mod pokemon;
@@ -142,7 +143,7 @@ fn evolution_routers() -> ApiRouter<AppState> {
                         .tag("pokemon")
                         .description("Get a list of pokemon species by evolution chain")
                         .response_with::<200, Json<PaginatedResource<Languaged<PokemonSpecies>>>, _>(|o| {
-                            o.description("example")
+                            o
                         })
                 }),
             ),
@@ -196,9 +197,7 @@ fn move_routers() -> ApiRouter<AppState> {
                     op.tag("move")
                         .tag("pokemon")
                         .description("Get a list of pokemons by move")
-                        .response_with::<200, Json<PaginatedResource<Languaged<Pokemon>>>, _>(|o| {
-                            o.description("example")
-                        })
+                        .response_with::<200, Json<PaginatedResource<Languaged<Pokemon>>>, _>(|o| o)
                 }),
             )
             .nest(
@@ -211,40 +210,11 @@ fn move_routers() -> ApiRouter<AppState> {
     )
 }
 
-async fn get_ablitity_pokemons(
-    State(state): State<AppState>,
-    Path(Resource { id }): Path<Resource>,
-    Query(Language { lang }): Query<Language>,
-) -> impl IntoApiResponse {
-    Result::from(state.pool.pokemon().list_by_ability(id, lang))
-}
-
 pub fn routers() -> ApiRouter<AppState> {
-    use pokemonle_lib::model::{Ability, Language, Pokedex, Version, VersionGroup};
+    use pokemonle_lib::model::{Pokedex, Version, VersionGroup};
 
     ApiRouter::new()
-        .nest(
-            "/abilities",
-            api_languaged_routers::<Ability, _, _>(|state| state.pool.ability())
-                .nest(
-                    "/{id}/flavor-text",
-                    api_flavor_text_routers_with_transform::<Ability, _, _, _>(
-                        |state| state.pool.ability(),
-                        |op| op.tag("ability"),
-                    ),
-                )
-                .api_route(
-                    "/{id}/pokemons",
-                    get_with(get_ablitity_pokemons, |op| {
-                        op.tag("ability")
-                            .tag("pokemon")
-                            .description("Get a list of pokemons by ability")
-                            .response_with::<200, Json<PaginatedResource<Pokemon>>, _>(|o| {
-                                o.description("example")
-                            })
-                    }),
-                ),
-        )
+        .merge(ability::routers())
         .merge(berry_routers())
         .merge(contest_routers())
         .merge(encounter_routers())
@@ -254,10 +224,6 @@ pub fn routers() -> ApiRouter<AppState> {
             api_languaged_routers::<Generation, _, _>(|state| state.pool.generation()),
         )
         .merge(item_routers())
-        .nest(
-            "/languages",
-            api_routers::<Language, _, _>(|state| state.pool.language()),
-        )
         .merge(language::routers())
         .merge(location_routers())
         .merge(move_routers())
