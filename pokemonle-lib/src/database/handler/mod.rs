@@ -13,7 +13,7 @@ use crate::model::{Languaged, ResourceDescription};
 use crate::{impl_handlers, prelude::*};
 use diesel::migration::MigrationVersion;
 use diesel::r2d2::{ConnectionManager, Pool};
-use diesel::{Connection, MultiConnection, PgConnection, QueryResult, SqliteConnection};
+use diesel::{Connection, PgConnection, SqliteConnection};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use pokemonle_trait::StructName;
 use std::sync::{Mutex, Once};
@@ -21,15 +21,11 @@ use tracing::debug;
 
 use crate::types::response::PaginatedResource;
 
+use super::connection::{ConnectionPool, DatabaseConnection};
+
 const MIGRATIONS: EmbeddedMigrations = embed_migrations!("../migrations");
 
 static VFS: Mutex<(i32, Once)> = Mutex::new((0, Once::new()));
-
-#[derive(MultiConnection)]
-pub enum DatabaseConnection {
-    Pg(PgConnection),
-    Sqlite(SqliteConnection),
-}
 
 pub struct DatabaseClient {
     pub connection: DatabaseConnection,
@@ -92,7 +88,7 @@ pub trait DatabaseHandlerWithFlavorText {
 
 #[derive(Clone)]
 pub struct DatabaseClientPooled {
-    connection: Pool<ConnectionManager<DatabaseConnection>>,
+    connection: ConnectionPool,
 }
 
 impl DatabaseClientPooled {
