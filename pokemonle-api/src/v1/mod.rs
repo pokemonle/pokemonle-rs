@@ -2,13 +2,10 @@ mod ability;
 mod language;
 mod r#move;
 mod openapi;
-mod param;
 mod pokemon;
 mod resource;
 mod response;
 mod router;
-
-pub(crate) use param::*;
 
 use crate::error::Result;
 use router::api_flavor_text_routers_with_transform;
@@ -22,6 +19,7 @@ use axum::{
 use pokemonle_lib::{
     database::{handler::DatabaseClientPooled, pagination::PaginatedResource},
     model::{Generation, Languaged, PokemonSpecies, Type},
+    types::param::{Language, Resource},
 };
 use router::{api_languaged_routers, api_routers};
 
@@ -29,11 +27,6 @@ use router::{api_languaged_routers, api_routers};
 pub struct AppState {
     pub pool: DatabaseClientPooled,
 }
-
-// #[derive(Deserialize, JsonSchema)]
-// pub struct Version {
-//     id: i32,
-// }
 
 fn item_routers() -> ApiRouter<AppState> {
     use pokemonle_lib::model::{Item, ItemCategory, ItemPocket};

@@ -6,9 +6,6 @@ use thiserror::Error;
 #[derive(Error, Debug, OperationIo)]
 pub enum Error {
     #[error(transparent)]
-    Crypto(#[from] pokemonle_lib::crypto::Error),
-
-    #[error(transparent)]
     PokemonleLib(#[from] pokemonle_lib::error::Error),
 }
 
@@ -20,12 +17,6 @@ impl IntoResponse for Error {
         }
 
         match self {
-            Error::Crypto(e) => {
-                let err = ErrResponse {
-                    error: e.to_string(),
-                };
-                (StatusCode::INTERNAL_SERVER_ERROR, Json(err)).into_response()
-            }
             Error::PokemonleLib(e) => {
                 let err = ErrResponse {
                     error: e.to_string(),

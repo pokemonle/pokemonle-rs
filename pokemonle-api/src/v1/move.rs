@@ -1,4 +1,4 @@
-use crate::{error::Result, v1::VersionGroup};
+use crate::error::Result;
 use aide::axum::{routing::get_with, ApiRouter, IntoApiResponse};
 use axum::{
     extract::{Path, Query, State},
@@ -7,11 +7,12 @@ use axum::{
 use pokemonle_lib::{
     database::pagination::PaginatedResource,
     model::{Languaged, Pokemon},
+    types::param::{Language, Resource, VersionGroup},
 };
 
 use super::{
     router::{api_flavor_text_routers_with_transform, api_languaged_routers},
-    AppState, Language, Resource,
+    AppState,
 };
 
 pub fn routers() -> ApiRouter<AppState> {

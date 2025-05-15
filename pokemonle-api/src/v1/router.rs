@@ -20,7 +20,7 @@ use pokemonle_trait::StructName;
 use schemars::JsonSchema;
 use serde::Serialize;
 
-use crate::v1::{Language, Resource, SearchQuery};
+use pokemonle_lib::types::param::{Language, Resource, SearchQuery};
 
 use super::AppState;
 

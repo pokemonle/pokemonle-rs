@@ -3,12 +3,12 @@ use serde::Deserialize;
 use schemars::JsonSchema;
 
 #[derive(Deserialize, JsonSchema)]
-pub(crate) struct Resource {
+pub struct Resource {
     pub id: i32,
 }
 
 #[derive(Deserialize, JsonSchema)]
-pub(crate) struct VersionGroup {
+pub struct VersionGroup {
     pub version_group: i32,
 }
 
@@ -17,7 +17,7 @@ fn default_language() -> i32 {
 }
 
 #[derive(Deserialize, JsonSchema)]
-pub(crate) struct Language {
+pub struct Language {
     #[serde(default = "default_language")]
     pub lang: i32,
 }
@@ -31,6 +31,6 @@ impl Default for Language {
 }
 
 #[derive(Deserialize, JsonSchema)]
-pub(crate) struct SearchQuery {
-    pub(crate) q: Option<String>,
+pub struct SearchQuery {
+    pub q: Option<String>,
 }
