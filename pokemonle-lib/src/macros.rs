@@ -69,9 +69,8 @@ macro_rules! impl_database_handler {
             fn get_all_resources(
                 &self,
                 pagination: $crate::database::pagination::Paginated,
-            ) -> $crate::error::Result<
-                $crate::database::pagination::PaginatedResource<Self::Resource>,
-            > {
+            ) -> $crate::error::Result<$crate::types::response::PaginatedResource<Self::Resource>>
+            {
                 // These imports are needed within the generated function scope
                 use diesel::dsl::count_star;
                 use diesel::prelude::*;
@@ -98,7 +97,7 @@ macro_rules! impl_database_handler {
                     .load::<Self::Resource>(&mut conn) // Load the associated Resource type
                     .map_err($crate::error::Error::DieselError)?;
 
-                Ok($crate::database::pagination::PaginatedResource {
+                Ok($crate::types::response::PaginatedResource {
                     data: items,
                     total_pages,
                     total_items,
@@ -152,7 +151,7 @@ macro_rules! impl_database_locale_handler {
                 locale_id: i32,
                 query: Option<String>,
             ) -> $crate::error::Result<
-                $crate::database::pagination::PaginatedResource<
+                $crate::types::response::PaginatedResource<
                     $crate::model::Languaged<Self::Resource>,
                 >,
             > {
@@ -183,7 +182,7 @@ macro_rules! impl_database_locale_handler {
                         .load::<(Self::Resource, String)>(&mut conn)
                         .map_err($crate::error::Error::DieselError)?;
 
-                    Ok($crate::database::pagination::PaginatedResource {
+                    Ok($crate::types::response::PaginatedResource {
                         data: items
                             .into_iter()
                             .map(|(resource, name)| $crate::model::Languaged {
@@ -217,7 +216,7 @@ macro_rules! impl_database_locale_handler {
                         .load::<(Self::Resource, String)>(&mut conn)
                         .map_err($crate::error::Error::DieselError)?;
 
-                    Ok($crate::database::pagination::PaginatedResource {
+                    Ok($crate::types::response::PaginatedResource {
                         data: items
                             .into_iter()
                             .map(|(resource, name)| $crate::model::Languaged {
@@ -280,7 +279,7 @@ macro_rules! impl_database_flavor_text_handler {
                 pagination: $crate::database::pagination::Paginated,
                 locale_id: i32,
             ) -> $crate::error::Result<
-                $crate::database::pagination::PaginatedResource<$crate::model::ResourceDescription>,
+                $crate::types::response::PaginatedResource<$crate::model::ResourceDescription>,
             > {
                 use diesel::dsl::count_star;
                 use diesel::prelude::*;
@@ -321,7 +320,7 @@ macro_rules! impl_database_flavor_text_handler {
                     })
                     .collect();
 
-                Ok($crate::database::pagination::PaginatedResource {
+                Ok($crate::types::response::PaginatedResource {
                     data: resources,
                     total_pages,
                     total_items,

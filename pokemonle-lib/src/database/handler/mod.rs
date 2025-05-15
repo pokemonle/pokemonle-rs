@@ -19,7 +19,7 @@ use pokemonle_trait::StructName;
 use std::sync::{Mutex, Once};
 use tracing::debug;
 
-use super::pagination::PaginatedResource;
+use crate::types::response::PaginatedResource;
 
 const MIGRATIONS: EmbeddedMigrations = embed_migrations!("../migrations");
 

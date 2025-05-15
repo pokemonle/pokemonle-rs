@@ -1,7 +1,7 @@
-use crate::database::pagination::PaginatedResource;
 use crate::database::schema::{language_names, languages};
 use crate::model::{Language, LanguageName};
 use crate::prelude::*;
+use crate::types::response::PaginatedResource;
 use crate::{impl_database_handler, impl_database_locale_handler};
 
 impl_database_handler!(

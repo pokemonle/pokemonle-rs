@@ -6,7 +6,6 @@ use aide::axum::{ApiRouter, IntoApiResponse};
 use aide::transform::TransformOperation;
 use axum::extract::{Path, Query, State};
 use axum::Json;
-use pokemonle_lib::database::pagination::PaginatedResource;
 use pokemonle_lib::model::{
     Ability, Languaged, Move, PokemonColor, PokemonEvolution, PokemonHabitat, PokemonMoveMethod,
     PokemonShape,
@@ -17,7 +16,10 @@ use crate::v1::router::{
 };
 
 use super::AppState;
-use pokemonle_lib::types::param::{Language, Resource, VersionGroup};
+use pokemonle_lib::types::{
+    request::{Language, Resource, VersionGroup},
+    response::PaginatedResource,
+};
 
 async fn get_pokemon_moves(
     State(state): State<AppState>,

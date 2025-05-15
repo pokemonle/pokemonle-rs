@@ -1,8 +1,8 @@
-use crate::database::pagination::PaginatedResource;
 use crate::database::schema::{evolution_chains, evolution_triggers};
 use crate::impl_database_handler;
 use crate::model::{EvolutionChain, EvolutionTrigger, Languaged, PokemonSpecies};
 use crate::prelude::*;
+use crate::types::response::PaginatedResource;
 
 impl_database_handler!(
     EvolutionChainHandler,

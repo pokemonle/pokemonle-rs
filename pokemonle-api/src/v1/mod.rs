@@ -17,9 +17,12 @@ use axum::{
     Json,
 };
 use pokemonle_lib::{
-    database::{handler::DatabaseClientPooled, pagination::PaginatedResource},
+    database::handler::DatabaseClientPooled,
     model::{Generation, Languaged, PokemonSpecies, Type},
-    types::param::{Language, Resource},
+    types::{
+        request::{Language, Resource},
+        response::PaginatedResource,
+    },
 };
 use router::{api_languaged_routers, api_routers};
 

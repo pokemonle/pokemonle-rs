@@ -1,4 +1,3 @@
-use crate::database::pagination::PaginatedResource;
 use crate::database::schema::{
     pokemon, pokemon_colors, pokemon_evolution, pokemon_habitats, pokemon_shapes, pokemon_species,
 };
@@ -10,6 +9,7 @@ use crate::model::{
     PokemonHabitat, PokemonMoveMethod, PokemonShape, PokemonSpecies, WithSlot,
 };
 use crate::prelude::*;
+use crate::types::response::PaginatedResource;
 use crate::{
     impl_database_flavor_text_handler, impl_database_handler, impl_database_locale_handler,
 };

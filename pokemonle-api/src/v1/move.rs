@@ -5,9 +5,11 @@ use axum::{
     Json,
 };
 use pokemonle_lib::{
-    database::pagination::PaginatedResource,
     model::{Languaged, Pokemon},
-    types::param::{Language, Resource, VersionGroup},
+    types::{
+        request::{Language, Resource, VersionGroup},
+        response::PaginatedResource,
+    },
 };
 
 use super::{

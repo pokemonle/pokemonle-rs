@@ -12,7 +12,7 @@ use axum::{
 use pokemonle_lib::{
     database::{
         handler::{DatabaseHandler, DatabaseHandlerWithFlavorText, DatabaseHandlerWithLocale},
-        pagination::{Paginated, PaginatedResource},
+        pagination::Paginated,
     },
     model::{Languaged, ResourceDescription},
 };
@@ -20,7 +20,10 @@ use pokemonle_trait::StructName;
 use schemars::JsonSchema;
 use serde::Serialize;
 
-use pokemonle_lib::types::param::{Language, Resource, SearchQuery};
+use pokemonle_lib::types::{
+    request::{Language, Resource, SearchQuery},
+    response::PaginatedResource,
+};
 
 use super::AppState;
 

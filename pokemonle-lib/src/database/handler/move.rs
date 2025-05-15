@@ -1,7 +1,7 @@
-use crate::database::pagination::PaginatedResource;
 use crate::database::schema::{move_flavor_text, move_names, moves};
 use crate::model::{Languaged, Move, Pokemon};
 use crate::prelude::*;
+use crate::types::response::PaginatedResource;
 use crate::{
     impl_database_flavor_text_handler, impl_database_handler, impl_database_locale_handler,
 };

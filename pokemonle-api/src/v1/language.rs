@@ -4,8 +4,8 @@ use crate::error::Result;
 use aide::axum::{routing::get_with, ApiRouter, IntoApiResponse};
 use axum::{extract::State, Json};
 use pokemonle_lib::{
-    database::pagination::PaginatedResource,
     model::{Language, LanguageName},
+    types::response::PaginatedResource,
 };
 
 pub fn routers() -> ApiRouter<AppState> {

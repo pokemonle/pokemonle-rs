@@ -4,17 +4,17 @@ use axum::{
     extract::{Path, Query, State},
     Json,
 };
-use pokemonle_lib::{
-    database::pagination::PaginatedResource,
-    model::{Ability, Pokemon},
-};
+use pokemonle_lib::model::{Ability, Pokemon};
 
 use super::{
     router::{api_flavor_text_routers_with_transform, api_languaged_routers},
     AppState,
 };
 
-use pokemonle_lib::types::param::{Language, Resource};
+use pokemonle_lib::types::{
+    request::{Language, Resource},
+    response::PaginatedResource,
+};
 
 async fn get_ablitity_pokemons(
     State(state): State<AppState>,
