@@ -35,7 +35,7 @@ async fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
 
     aide::generate::extract_schemas(true);
 
-    let pool = pokemonle_lib::database::handler::DatabaseClientPooled::new()?;
+    let pool = pokemonle_lib::database::DatabaseClient::new().await?;
     let state = v1::AppState { pool };
 
     let mut api = OpenApi {

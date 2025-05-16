@@ -1,3 +1,4 @@
+use crate::error::Error;
 use crate::error::Result;
 use aide::{
     axum::{routing::get_with, ApiRouter, IntoApiResponse},
@@ -5,235 +6,148 @@ use aide::{
     OperationOutput,
 };
 
+use axum::http::StatusCode;
 use axum::{
     extract::{Path, Query, State},
+    response::IntoResponse,
     Json,
 };
+
+use pokemonle_lib::database::r#trait::LocalizedEntity;
+use pokemonle_lib::types::WithName;
 use pokemonle_lib::{
-    database::{
-        handler::{DatabaseHandler, DatabaseHandlerWithFlavorText, DatabaseHandlerWithLocale},
-        pagination::Paginated,
-    },
-    model::{Languaged, ResourceDescription},
+    database::r#trait::{LocalizedResourceHandler, ResourceHandler},
+    sea_orm::{EntityTrait, FromQueryResult, PrimaryKeyTrait},
+    types::request::PaginateQuery,
 };
-use pokemonle_trait::StructName;
+
+use pokemonle_lib::types::{
+    request::{Language, ResourceId, SearchQuery},
+    response::PaginatedResource,
+};
 use schemars::JsonSchema;
 use serde::Serialize;
 
-use pokemonle_lib::types::{
-    request::{Language, Resource, SearchQuery},
-    response::PaginatedResource,
-};
-
 use super::AppState;
 
-pub fn api_routers<T, H, F>(handler_fn: F) -> ApiRouter<AppState>
-where
-    T: StructName + OperationOutput + Serialize + JsonSchema + Clone + Send + Sync + 'static,
-    <T as OperationOutput>::Inner: Serialize + From<T>,
-    H: DatabaseHandler<Resource = T> + Sync + 'static,
-    F: Fn(AppState) -> H + Clone + Copy + Send + Sync + 'static,
-{
-    api_routers_with_transform(handler_fn, |o| o)
+pub trait ResourceRouter<T> {
+    fn routers() -> ApiRouter<AppState> {
+        Self::routers_with(|op| op)
+    }
+
+    fn routers_with(
+        f: impl FnOnce(TransformOperation) -> TransformOperation + Clone + Copy,
+    ) -> ApiRouter<AppState>;
 }
 
-pub fn api_routers_with_transform<T, H, F, O>(handler_fn: F, transform: O) -> ApiRouter<AppState>
+impl<T> ResourceRouter<T> for T
 where
-    T: StructName + OperationOutput + Serialize + JsonSchema + Clone + Send + Sync + 'static,
-    <T as OperationOutput>::Inner: Serialize + From<T>,
-    H: DatabaseHandler<Resource = T> + Sync + 'static,
-    F: Fn(AppState) -> H + Clone + Copy + Send + Sync + 'static,
-    O: FnOnce(TransformOperation) -> TransformOperation + Clone + Copy,
+    T: EntityTrait + 'static,
+    T::PrimaryKey: PrimaryKeyTrait<ValueType = i32>,
+    T::Model: Serialize + JsonSchema + FromQueryResult + Sized + Send + Sync,
 {
-    use super::openapi::{get_item_by_id_docs, list_items_docs};
+    fn routers_with(
+        f: impl FnOnce(TransformOperation) -> TransformOperation + Clone + Copy,
+    ) -> ApiRouter<AppState> {
+        async fn list_resource<T>(
+            State(state): State<AppState>,
+            Query(PaginateQuery { page, per_page }): Query<PaginateQuery>,
+        ) -> impl IntoApiResponse
+        where
+            T: EntityTrait + 'static,
+            T::PrimaryKey: PrimaryKeyTrait<ValueType = i32>,
+            T::Model: Serialize + JsonSchema + FromQueryResult + Sized + Send + Sync,
+        {
+            let handler: &dyn ResourceHandler<T> = &state.pool;
+            Result::from(
+                handler
+                    .list_with_pagination(page as u64, per_page as u64)
+                    .await,
+            )
+        }
 
-    async fn list<T, H>(
-        State(state): State<AppState>,
-        Query(pagination): Query<Paginated>,
-        handle_fn: impl Fn(AppState) -> H,
-    ) -> impl IntoApiResponse
-    where
-        T: Serialize + Clone + Send + Sync,
-        H: DatabaseHandler<Resource = T>,
-    {
-        let handler = handle_fn(state);
+        async fn get_resource<T>(
+            State(state): State<AppState>,
+            Path(ResourceId { id }): Path<ResourceId>,
+        ) -> impl IntoApiResponse
+        where
+            T: EntityTrait + 'static,
+            T::PrimaryKey: PrimaryKeyTrait<ValueType = i32>,
+            T::Model: Serialize + Sync,
+        {
+            let handler: &dyn ResourceHandler<T> = &state.pool;
+            Result::from(handler.get_by_id(id).await)
+        }
 
-        Result::from(handler.get_all_resources(pagination))
+        ApiRouter::new()
+            .api_route(
+                "/",
+                get_with(list_resource::<T>, |op| {
+                    f(op.response_with::<200, Json<PaginatedResource<T::Model>>, _>(|o| o))
+                }),
+            )
+            .api_route(
+                "/{id}",
+                get_with(get_resource::<T>, |op| {
+                    f(op.response_with::<200, Json<T::Model>, _>(|o| o))
+                }),
+            )
     }
-
-    async fn get<T, H>(
-        State(state): State<AppState>,
-        Path(resource): Path<Resource>,
-        handler_fn: impl Fn(AppState) -> H,
-    ) -> impl IntoApiResponse
-    where
-        T: Serialize + Clone + Send + Sync + StructName,
-        H: DatabaseHandler<Resource = T>,
-    {
-        let handler = handler_fn(state);
-
-        crate::error::Result::from(handler.get_resource_by_id(resource.id))
-    }
-
-    ApiRouter::new()
-        .api_route(
-            "/",
-            get_with(
-                move |(state, pagination)| list::<T, H>(state, pagination, handler_fn),
-                move |op| transform(list_items_docs::<T>(op)),
-            ),
-        )
-        .api_route(
-            "/{id}",
-            get_with(
-                move |state, id| get::<T, H>(state, id, handler_fn),
-                // get_item_by_id_docs with transform
-                move |op| transform(get_item_by_id_docs::<T>(op)),
-            ),
-        )
 }
 
-pub fn api_languaged_routers<T, H, F>(handler_fn: F) -> ApiRouter<AppState>
+impl<T> ResourceRouter<T> for WithName<T>
 where
-    T: StructName + OperationOutput + Serialize + JsonSchema + Clone + Send + Sync + 'static,
-    <T as OperationOutput>::Inner: Serialize + From<T>,
-    H: DatabaseHandlerWithLocale<Resource = T> + Sync + 'static,
-    F: Fn(AppState) -> H + Clone + Copy + Send + Sync + 'static,
+    T: LocalizedEntity + 'static,
+    T::PrimaryKey: PrimaryKeyTrait<ValueType = i32>,
+    T::Model: Serialize + JsonSchema + FromQueryResult + Sized + Send + Sync,
 {
-    api_languaged_routers_with_transform(handler_fn, |o| o)
-}
+    fn routers_with(
+        f: impl FnOnce(TransformOperation) -> TransformOperation + Clone + Copy,
+    ) -> ApiRouter<AppState> {
+        async fn list_resource<T>(
+            State(state): State<AppState>,
+            Query(PaginateQuery { page, per_page }): Query<PaginateQuery>,
+            Query(Language { lang }): Query<Language>,
+        ) -> impl IntoApiResponse
+        where
+            T: LocalizedEntity + 'static,
+            T::PrimaryKey: PrimaryKeyTrait<ValueType = i32>,
+            T::Model: Serialize + JsonSchema + FromQueryResult + Sized + Send + Sync,
+        {
+            let handler: &dyn LocalizedResourceHandler<T> = &state.pool;
+            Result::from(
+                handler
+                    .list_with_pagination(page as u64, per_page as u64, lang)
+                    .await,
+            )
+        }
 
-pub fn api_languaged_routers_with_transform<T, H, F, O>(
-    handler_fn: F,
-    transform: O,
-) -> ApiRouter<AppState>
-where
-    T: StructName + OperationOutput + Serialize + JsonSchema + Clone + Send + Sync + 'static,
-    <T as OperationOutput>::Inner: Serialize + From<T>,
-    H: DatabaseHandlerWithLocale<Resource = T> + Sync + 'static,
-    F: Fn(AppState) -> H + Clone + Copy + Send + Sync + 'static,
-    O: FnOnce(TransformOperation) -> TransformOperation + Clone + Copy,
-{
-    use super::openapi::{get_item_by_id_docs, list_items_docs};
+        async fn get_resource<T>(
+            State(state): State<AppState>,
+            Path(ResourceId { id }): Path<ResourceId>,
+            Query(Language { lang }): Query<Language>,
+        ) -> impl IntoApiResponse
+        where
+            T: LocalizedEntity + 'static,
+            T::PrimaryKey: PrimaryKeyTrait<ValueType = i32>,
+            T::Model: Serialize + Sync,
+        {
+            let handler: &dyn LocalizedResourceHandler<T> = &state.pool;
+            Result::from(handler.get_by_id(id, lang).await)
+        }
 
-    async fn list<T, H>(
-        State(state): State<AppState>,
-        Query(Language { lang }): Query<Language>,
-        Query(pagination): Query<Paginated>,
-        Query(search): Query<SearchQuery>,
-        handle_fn: impl Fn(AppState) -> H,
-    ) -> impl IntoApiResponse
-    where
-        T: Serialize + Clone + Send + Sync + StructName,
-        H: DatabaseHandlerWithLocale<Resource = T>,
-    {
-        let handler = handle_fn(state);
-
-        Result::from(handler.get_all_resources_with_locale(pagination, lang, search.q))
+        ApiRouter::new()
+            .api_route(
+                "/",
+                get_with(list_resource::<T>, |op| {
+                    f(op.response_with::<200, Json<PaginatedResource<T::Model>>, _>(|o| o))
+                }),
+            )
+            .api_route(
+                "/{id}",
+                get_with(get_resource::<T>, |op| {
+                    f(op.response_with::<200, Json<T::Model>, _>(|o| o))
+                }),
+            )
     }
-
-    async fn get<T, H>(
-        State(state): State<AppState>,
-        Query(Language { lang }): Query<Language>,
-        Path(resource): Path<Resource>,
-        handler_fn: impl Fn(AppState) -> H,
-    ) -> impl IntoApiResponse
-    where
-        T: Serialize + Clone + Send + Sync + StructName,
-        H: DatabaseHandlerWithLocale<Resource = T>,
-    {
-        let handler = handler_fn(state);
-
-        Result::from(handler.get_resource_by_id_with_locale(resource.id, lang))
-    }
-
-    ApiRouter::new()
-        .api_route(
-            "/",
-            get_with(
-                move |(state, lang, pagination, search)| {
-                    list::<T, H>(state, lang, pagination, search, handler_fn)
-                },
-                move |op| transform(list_items_docs::<Languaged<T>>(op)),
-            ),
-        )
-        .api_route(
-            "/{id}",
-            get_with(
-                move |(state, lang, id)| get::<T, H>(state, lang, id, handler_fn),
-                // get_item_by_id_docs with transform
-                move |op| transform(get_item_by_id_docs::<Languaged<T>>(op)),
-            ),
-        )
-}
-
-pub fn api_flavor_text_routers_with_transform<T, H, F, O>(
-    handler_fn: F,
-    transform: O,
-) -> ApiRouter<AppState>
-where
-    T: StructName + OperationOutput + Serialize + JsonSchema + Clone + Send + Sync + 'static,
-    <T as OperationOutput>::Inner: Serialize + From<T>,
-    H: DatabaseHandlerWithFlavorText + Sync + 'static,
-    F: Fn(AppState) -> H + Clone + Copy + Send + Sync + 'static,
-    O: FnOnce(TransformOperation) -> TransformOperation + Clone + Copy,
-{
-    async fn list<H>(
-        State(state): State<AppState>,
-        Path(resource): Path<Resource>,
-        Query(Language { lang }): Query<Language>,
-        Query(pagination): Query<Paginated>,
-        handle_fn: impl Fn(AppState) -> H,
-    ) -> impl IntoApiResponse
-    where
-        H: DatabaseHandlerWithFlavorText,
-    {
-        let handler = handle_fn(state);
-
-        Result::from(handler.get_all_resources_with_flavor_text(resource.id, pagination, lang))
-    }
-
-    async fn get<H>(
-        State(state): State<AppState>,
-        Query(Language { lang }): Query<Language>,
-        Path(resource): Path<Resource>,
-        // Path(version): Path<Version>,
-        handler_fn: impl Fn(AppState) -> H,
-    ) -> impl IntoApiResponse
-    where
-        H: DatabaseHandlerWithFlavorText,
-    {
-        let handler = handler_fn(state);
-
-        Result::from(handler.get_latest_flavor_text(resource.id, lang))
-    }
-
-    ApiRouter::new()
-        .api_route(
-            "/",
-            get_with(
-                move |(state, resource, lang, pagination)| {
-                    list::<H>(state, resource, lang, pagination, handler_fn)
-                },
-                move |op| {
-                    transform(
-                        op.response_with::<200, Json<PaginatedResource<ResourceDescription>>, _>(
-                            |r| r.description("return paginated flavor text"),
-                        ),
-                    )
-                },
-            ),
-        )
-        .api_route(
-            "/latest",
-            get_with(
-                move |(state, lang, id)| get::<H>(state, lang, id, handler_fn),
-                // get_item_by_id_docs with transform
-                move |op| {
-                    transform(op.response_with::<200, Json<ResourceDescription>, _>(|r| {
-                        r.description("return latest flavor text")
-                    }))
-                },
-            ),
-        )
 }

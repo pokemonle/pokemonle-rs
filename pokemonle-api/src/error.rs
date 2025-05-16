@@ -1,5 +1,6 @@
 use aide::OperationIo;
 use axum::{http::StatusCode, response::IntoResponse, Json};
+use pokemonle_lib::sea_orm::{EntityTrait, ModelTrait};
 use serde::Serialize;
 use thiserror::Error;
 

@@ -12,19 +12,13 @@ pub enum Error {
     ConfigReadEmptyEnvVar(&'static str),
 
     #[error(transparent)]
-    ConnectionError(#[from] diesel::ConnectionError),
+    ConnectionError(#[from] sea_orm::DbErr),
+
+    #[error("Resource not found: {0}")]
+    ResourceNotFound(String),
 
     #[error("Unsupported database url '{0}'")]
     UnsupportedDatabase(String),
-
-    #[error(transparent)]
-    DieselError(#[from] diesel::result::Error),
-
-    #[error(transparent)]
-    R2D2PoolError(#[from] diesel::r2d2::PoolError),
-
-    #[error(transparent)]
-    R2D2Error(#[from] diesel::r2d2::Error),
 
     #[error("Mutex lock was poisoned")]
     MutexPoisonError,
