@@ -1655,15 +1655,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pokemonle-derive"
-version = "0.1.0"
-dependencies = [
- "darling",
- "quote",
- "syn 2.0.101",
-]
-
-[[package]]
 name = "pokemonle-lib"
 version = "0.1.0"
 dependencies = [
@@ -1686,9 +1677,6 @@ dependencies = [
 [[package]]
 name = "pokemonle-trait"
 version = "0.1.0"
-dependencies = [
- "pokemonle-derive",
-]
 
 [[package]]
 name = "potential_utf"

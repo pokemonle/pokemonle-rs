@@ -10,15 +10,7 @@ macro_rules! define_extra_struct {
             )*
         }
 
-        impl<T> pokemonle_trait::StructName for $name<T> where T: pokemonle_trait::StructName {
-            fn struct_name() -> &'static str {
-                T::struct_name()
-            }
 
-            fn tags() -> &'static [&'static str] {
-                T::tags()
-            }
-        }
     };
 }
 

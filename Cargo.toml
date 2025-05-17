@@ -1,8 +1,3 @@
 [workspace]
 resolver = "2"
-members = [
-    "pokemonle-derive",
-    "pokemonle-api",
-    "pokemonle-lib",
-    "pokemonle-trait",
-]
+members = ["pokemonle-api", "pokemonle-lib", "pokemonle-trait"]
