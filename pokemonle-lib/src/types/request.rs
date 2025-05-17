@@ -39,9 +39,9 @@ pub struct SearchQuery {
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, OperationIo, JsonSchema)]
 #[serde(default)]
 pub struct PaginateQuery {
-    pub page: i64,
+    pub page: u64,
     #[validate(range(min = 10, max = 100))]
-    pub per_page: i64,
+    pub per_page: u64,
 }
 
 impl Default for PaginateQuery {

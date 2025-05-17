@@ -28,7 +28,7 @@ impl Config {
         }
 
         let database_url = read_and_return_env_var(ENV_VAR_DATABASE_URL)
-            .unwrap_or("sqlite://./pokemonle.db".to_string());
+            .unwrap_or("sqlite://pokemonle.db?mode=rwc".to_string());
 
         Ok(Config { database_url })
     }

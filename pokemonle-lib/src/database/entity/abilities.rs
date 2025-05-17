@@ -21,7 +21,7 @@ pub struct Model {
     #[sea_orm(unique)]
     pub identifier: String,
     pub generation_id: i32,
-    pub is_main_series: Option<bool>,
+    pub is_main_series: bool,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

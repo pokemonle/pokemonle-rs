@@ -1,24 +1,14 @@
 use crate::{prelude::*, types::WithName};
 use async_trait::async_trait;
-use sea_orm::{EntityTrait, FromQueryResult, PrimaryKeyTrait, Related};
+use sea_orm::{DbConn, EntityTrait};
 
 use crate::types::response::PaginatedResource;
-
-pub trait LocalizedEntity: EntityTrait {
-    type NameEntity: EntityTrait + Related<Self>;
-
-    fn get_identifier(model: &Self::Model) -> String;
-    fn get_name(name_model: &<Self::NameEntity as EntityTrait>::Model) -> String;
-    fn language_id_column() -> <Self::NameEntity as EntityTrait>::Column;
-}
 
 #[async_trait]
 pub trait ResourceHandler<T>
 where
-    T: EntityTrait,
-    T::PrimaryKey: PrimaryKeyTrait<ValueType = i32>,
-    T::Model: FromQueryResult + Sized + Send + Sync,
-    Self: Send,
+    T: EntityTrait + Send + Sync + 'static,
+    Self: Send + Sync,
 {
     async fn list_with_pagination(
         &self,
@@ -30,12 +20,16 @@ where
 }
 
 #[async_trait]
-pub trait LocalizedResourceHandler<T>
+pub trait DBConnection: Send + Sync {
+    async fn get_conn(self) -> DbConn;
+}
+
+#[async_trait]
+pub trait LocalizedResourceHandler<T, N>
 where
-    T: EntityTrait,
-    T::PrimaryKey: PrimaryKeyTrait<ValueType = i32>,
-    T::Model: FromQueryResult + Sized + Send + Sync,
-    Self: Send,
+    T: EntityTrait + Send + Sync + 'static,
+    N: EntityTrait + Send + Sync + 'static,
+    Self: Send + Sync,
 {
     async fn list_with_pagination(
         &self,
