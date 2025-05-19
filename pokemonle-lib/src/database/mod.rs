@@ -1,10 +1,12 @@
+pub mod ability;
 pub mod entity;
-
+pub mod evo;
+pub mod language;
 pub mod r#trait;
 use crate::localized_resource_handler;
 use crate::{prelude::*, types::response::PaginatedResource};
 use async_trait::async_trait;
-use entity::prelude::*;
+use entity::{language_names, prelude::*};
 use r#trait::{DBConnection, ResourceHandler};
 use sea_orm::{
     ConnectOptions, Database, DbConn, DbErr, EntityTrait, FromQueryResult, PaginatorTrait,
@@ -98,44 +100,53 @@ where
 }
 
 localized_resource_handler!(
-    Abilities,
-    AbilityNames,
-    entity::ability_names::Column::LocalLanguageId
-);
-localized_resource_handler!(
     PokemonSpecies,
     PokemonSpeciesNames,
-    entity::pokemon_species_names::Column::LocalLanguageId
+    entity::pokemon_species_names::Column::LocalLanguageId,
+    entity::pokemon_species_names::Column::Name
 );
 localized_resource_handler!(
     BerryFirmness,
     BerryFirmnessNames,
-    entity::berry_firmness_names::Column::LocalLanguageId
+    entity::berry_firmness_names::Column::LocalLanguageId,
+    entity::berry_firmness_names::Column::Name
 );
 localized_resource_handler!(
     Generations,
     GenerationNames,
-    entity::generation_names::Column::LocalLanguageId
+    entity::generation_names::Column::LocalLanguageId,
+    entity::generation_names::Column::Name
 );
 
 localized_resource_handler!(
     ItemPockets,
     ItemPocketNames,
-    entity::item_pocket_names::Column::LocalLanguageId
+    entity::item_pocket_names::Column::LocalLanguageId,
+    entity::item_pocket_names::Column::Name
 );
 localized_resource_handler!(
     Items,
     ItemNames,
-    entity::item_names::Column::LocalLanguageId
+    entity::item_names::Column::LocalLanguageId,
+    entity::item_names::Column::Name
 );
 localized_resource_handler!(
     Moves,
     MoveNames,
-    entity::move_names::Column::LocalLanguageId
+    entity::move_names::Column::LocalLanguageId,
+    entity::move_names::Column::Name
 );
 
 localized_resource_handler!(
     Regions,
     RegionNames,
-    entity::region_names::Column::LocalLanguageId
+    entity::region_names::Column::LocalLanguageId,
+    entity::region_names::Column::Name
+);
+
+localized_resource_handler!(
+    Locations,
+    LocationNames,
+    entity::location_names::Column::LocalLanguageId,
+    entity::location_names::Column::Name
 );

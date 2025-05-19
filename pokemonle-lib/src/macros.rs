@@ -2,6 +2,7 @@
 macro_rules! define_extra_struct {
     ($name:ident { $($field:ident: $type:ty),* }) => {
         #[derive(Debug, serde::Serialize, serde::Deserialize, schemars::JsonSchema,aide::OperationIo)]
+        #[aide(output, json_schema)]
         pub struct $name<T> {
             #[serde(flatten)]
             pub item: T,
@@ -16,7 +17,7 @@ macro_rules! define_extra_struct {
 
 #[macro_export]
 macro_rules! localized_resource_handler {
-    ($entity:ty, $name_entity:ty, $lang_column:path) => {
+    ($entity:ty, $name_entity:ty, $lang_column:path, $name_column:path) => {
         #[async_trait::async_trait]
         impl $crate::database::r#trait::LocalizedResourceHandler<$entity, $name_entity>
             for $crate::database::DatabaseClient
@@ -26,6 +27,7 @@ macro_rules! localized_resource_handler {
                 page: u64,
                 limit: u64,
                 lang: i32,
+                query: Option<String>,
             ) -> $crate::error::Result<
                 $crate::types::response::PaginatedResource<
                     $crate::types::WithName<<$entity as $crate::sea_orm::EntityTrait>::Model>,
@@ -35,6 +37,7 @@ macro_rules! localized_resource_handler {
                 let paginator = <$entity>::find()
                     .find_also_related(<$name_entity>::default())
                     .filter($lang_column.eq(lang))
+                    .filter($name_column.contains(query.unwrap_or_default().as_str()))
                     .paginate(&self.conn, limit);
 
                 let data = paginator

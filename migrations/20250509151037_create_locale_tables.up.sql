@@ -49,8 +49,8 @@ CREATE TABLE language_names (
     local_language_id INT NOT NULL ,
     name VARCHAR(255) NOT NULL,
     PRIMARY KEY (language_id, local_language_id),
-    FOREIGN KEY (language_id) REFERENCES languages(id),
-    FOREIGN KEY (local_language_id) REFERENCES languages(id)
+    FOREIGN KEY (language_id) REFERENCES languages(id)
+    -- FOREIGN KEY (local_language_id) REFERENCES languages(id)
 );
 
 CREATE TABLE location_names (

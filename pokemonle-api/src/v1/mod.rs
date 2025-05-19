@@ -1,8 +1,11 @@
 mod ability;
+mod contest;
+mod evo;
 mod item;
-// mod language;
+mod language;
 // mod r#move;
 // mod openapi;
+mod location;
 mod pokemon;
 mod router;
 
@@ -21,23 +24,17 @@ pub fn routers() -> ApiRouter<AppState> {
 
     ApiRouter::new()
         .nest("/abilities", ability::routers())
-        .nest(
-            "/languages",
-            Languages::routers_with(|op| op.tag("language")),
-        )
         .nest("/berries", Berries::routers_with(|op| op.tag("berry")))
+        .nest(
+            "/berry-firmness",
+            BerryFirmness::routers_with(|op| op.tag("berry")),
+        )
+        .merge(contest::routers())
         .nest(
             "/encounters",
             Encounters::routers_with(|op| op.tag("encounter")),
         )
-        .nest(
-            "/evolution-chains",
-            EvolutionChains::routers_with(|op| op.tag("evolution")),
-        )
-        .nest(
-            "/evolution-triggers",
-            EvolutionTriggers::routers_with(|op| op.tag("evolution")),
-        )
+        .merge(evo::routers())
         .nest("/items", item::routers())
         .nest(
             "/item-categories",
@@ -47,5 +44,7 @@ pub fn routers() -> ApiRouter<AppState> {
             "/item-pockets",
             ItemPockets::routers_with(|op| op.tag("item")),
         )
+        .merge(language::routers())
+        .merge(location::routers())
         .nest("/pokemon-species", pokemon::routers())
 }

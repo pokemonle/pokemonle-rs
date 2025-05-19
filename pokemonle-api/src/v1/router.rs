@@ -82,14 +82,19 @@ where
             .api_route(
                 "/",
                 get_with(list_resource::<T>, |op| {
-                    f(op.response_with::<200, Json<PaginatedResource<T::Model>>, _>(|o| o))
+                    f(response_with::<PaginatedResource<T::Model>>(op))
                 }),
             )
             .api_route(
                 "/{id}",
-                get_with(get_resource::<T>, |op| {
-                    f(op.response_with::<200, Json<T::Model>, _>(|o| o))
-                }),
+                get_with(get_resource::<T>, |op| f(response_with::<T::Model>(op))),
             )
     }
+}
+
+pub fn response_with<T>(op: TransformOperation) -> TransformOperation
+where
+    T: Serialize + JsonSchema,
+{
+    op.response_with::<200, Json<T>, _>(|o| o)
 }

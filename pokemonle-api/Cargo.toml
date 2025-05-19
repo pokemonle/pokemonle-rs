@@ -7,21 +7,12 @@ license = "Apache-2.0"
 [dependencies]
 pokemonle-lib = { path = "../pokemonle-lib" }
 pokemonle-trait = { path = "../pokemonle-trait" }
-tokio = { version = "1.45", features = ["full"] }
-async-session = "3.0.0"
+tokio = { version = "1", features = ["full"] }
 axum = "^0.8"
-axum-extra = { version = "0.10.1", features = ["typed-header"] }
-aide = { version = "^0.14", features = [
-    "axum",
-    "axum-json",
-    "axum-query",
-    "scalar",
-    "macros",
-
-] }
-serde = { version = "1.0", features = ["derive"] }
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-tower-http = { version = "0.6", features = ["trace", "cors"] }
-thiserror = "2.0"
-schemars = { version = "0.8", features = ["derive"] }
+aide.workspace = true
+serde.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+tower-http = { version = "^0.6", features = ["trace", "cors"] }
+thiserror.workspace = true
+schemars.workspace = true

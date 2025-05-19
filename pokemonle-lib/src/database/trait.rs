@@ -36,6 +36,7 @@ where
         page: u64,
         limit: u64,
         lang: i32,
+        query: Option<String>,
     ) -> Result<PaginatedResource<WithName<T::Model>>>;
 
     async fn get_by_id(&self, id: i32, lang: i32) -> Result<WithName<T::Model>>;
