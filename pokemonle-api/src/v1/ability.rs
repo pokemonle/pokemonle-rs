@@ -44,6 +44,21 @@ async fn get_pokemons_by_ability_id(
     )
 }
 
+async fn get_ability_flavor_text(
+    State(state): State<AppState>,
+    Path(ResourceId { id }): Path<ResourceId>,
+    Query(Language { lang }): Query<Language>,
+    Query(VersionGroup { version_group }): Query<VersionGroup>,
+) -> impl IntoApiResponse {
+    let handler = &state.pool;
+
+    Result::from(
+        handler
+            .get_ability_flavor_text(id, version_group, lang)
+            .await,
+    )
+}
+
 pub fn routers() -> ApiRouter<AppState> {
     use entity::abilities::Model;
     ApiRouter::new()
@@ -62,5 +77,25 @@ pub fn routers() -> ApiRouter<AppState> {
         .api_route(
             "/{id}/pokemons",
             get_with(get_pokemons_by_ability_id, |op| op.tag("ability")),
+        )
+        .api_route(
+            "/{id}/flavor-text",
+            get_with(get_ability_flavor_text, |op| op.tag("ability")),
+        )
+        .api_route(
+            "/{id}/flavor-text/last",
+            get_with(
+                |state: State<AppState>,
+                 resource: Path<ResourceId>,
+                 lang: Query<Language>| async move {
+                    let handler = &state.pool;
+                    Result::from(
+                        handler
+                            .get_ability_flavor_text(resource.id, None, lang.lang)
+                            .await,
+                    )
+                },
+                |op|response_with::<WithName<Model>>(op).tag("ability"),
+            ),
         )
 }

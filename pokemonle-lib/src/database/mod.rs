@@ -3,10 +3,11 @@ pub mod entity;
 pub mod evo;
 pub mod language;
 pub mod r#trait;
+pub mod version;
 use crate::localized_resource_handler;
 use crate::{prelude::*, types::response::PaginatedResource};
 use async_trait::async_trait;
-use entity::{language_names, prelude::*};
+use entity::prelude::*;
 use r#trait::{DBConnection, ResourceHandler};
 use sea_orm::{
     ConnectOptions, Database, DbConn, DbErr, EntityTrait, FromQueryResult, PaginatorTrait,

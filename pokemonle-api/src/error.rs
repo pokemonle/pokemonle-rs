@@ -50,3 +50,9 @@ impl<T> From<pokemonle_lib::error::Result<T>> for Result<T> {
         }
     }
 }
+
+impl<T> From<pokemonle_lib::error::Error> for Result<T> {
+    fn from(value: pokemonle_lib::error::Error) -> Self {
+        Result(Err(Error::PokemonleLib(value)))
+    }
+}

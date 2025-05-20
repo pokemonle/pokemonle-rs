@@ -10,7 +10,12 @@ pub struct ResourceId {
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, OperationIo, JsonSchema)]
 pub struct VersionGroup {
-    pub version_group: i32,
+    pub version_group: Option<i32>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, OperationIo, JsonSchema)]
+pub struct Version {
+    pub version: i32,
 }
 
 fn default_language() -> i32 {
@@ -51,27 +56,4 @@ impl Default for PaginateQuery {
             per_page: 25,
         }
     }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, OperationIo, JsonSchema)]
-pub struct FlavorParams(ResourceId, Language);
-
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, OperationIo, JsonSchema)]
-pub enum FlavorResource {
-    Item {
-        #[serde(flatten)]
-        params: FlavorParams,
-    },
-    Ability {
-        #[serde(flatten)]
-        params: FlavorParams,
-    },
-    Move {
-        id: i32,
-        version_group: i32,
-    },
-    PokemonSpecies {
-        id: i32,
-        version_group: i32,
-    },
 }
