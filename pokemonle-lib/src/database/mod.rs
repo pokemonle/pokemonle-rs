@@ -2,6 +2,7 @@ pub mod ability;
 pub mod entity;
 pub mod evo;
 pub mod language;
+pub mod r#move;
 pub mod r#trait;
 pub mod version;
 use crate::localized_resource_handler;
@@ -130,12 +131,6 @@ localized_resource_handler!(
     ItemNames,
     entity::item_names::Column::LocalLanguageId,
     entity::item_names::Column::Name
-);
-localized_resource_handler!(
-    Moves,
-    MoveNames,
-    entity::move_names::Column::LocalLanguageId,
-    entity::move_names::Column::Name
 );
 
 localized_resource_handler!(

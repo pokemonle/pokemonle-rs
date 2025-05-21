@@ -3,7 +3,7 @@ mod contest;
 mod evo;
 mod item;
 mod language;
-// mod r#move;
+mod r#move;
 // mod openapi;
 mod location;
 mod pokemon;
@@ -46,5 +46,6 @@ pub fn routers() -> ApiRouter<AppState> {
         )
         .merge(language::routers())
         .merge(location::routers())
+        .nest("/moves", r#move::routers())
         .nest("/pokemon-species", pokemon::routers())
 }

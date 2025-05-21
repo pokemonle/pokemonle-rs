@@ -87,10 +87,18 @@ impl DatabaseClient {
     pub async fn get_move_flavor_text(
         &self,
         id: i32,
-        version_group: i32,
+        version_group: Option<i32>,
         lang: i32,
     ) -> Result<entity::move_flavor_text::Model> {
-        MoveFlavorText::find_by_id((id, version_group, lang))
+        let select = match version_group {
+            Some(vg) => MoveFlavorText::find_by_id((id, vg, lang)),
+            None => MoveFlavorText::find()
+                .filter(entity::move_flavor_text::Column::MoveId.eq(id))
+                .filter(entity::move_flavor_text::Column::LanguageId.eq(lang))
+                .order_by_desc(entity::move_flavor_text::Column::VersionGroupId),
+        };
+
+        select
             .one(&self.conn)
             .await
             .map_err(Error::ConnectionError)?

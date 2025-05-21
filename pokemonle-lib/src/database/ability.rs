@@ -1,6 +1,5 @@
 use sea_orm::{
-    ColumnTrait, ConnectionTrait, EntityTrait, JoinType, PaginatorTrait, QueryFilter, QuerySelect,
-    QueryTrait, RelationTrait,
+    ColumnTrait, EntityTrait, JoinType, PaginatorTrait, QueryFilter, QuerySelect, RelationTrait,
 };
 
 use super::{
@@ -32,7 +31,7 @@ impl DatabaseClient {
     ) -> Result<PaginatedResource<WithName<pokemon::Model>>> {
         // find pokemons from pokemon_abilties table where ability_id = ability_id
 
-        let query = Pokemon::find()
+        let paginator = Pokemon::find()
             .inner_join(PokemonAbilities)
             .inner_join(PokemonSpecies)
             .join(
@@ -41,12 +40,8 @@ impl DatabaseClient {
             )
             .filter(pokemon_abilities::Column::AbilityId.eq(ability_id))
             .filter(pokemon_species_names::Column::LocalLanguageId.eq(lang))
-            .select_also(PokemonSpeciesNames);
-        println!(
-            "{:?}",
-            query.build(self.conn.get_database_backend()).to_string()
-        );
-        let paginator = query.paginate(&self.conn, limit);
+            .select_also(PokemonSpeciesNames)
+            .paginate(&self.conn, limit);
 
         let data = paginator.fetch_page(page - 1).await?;
 
