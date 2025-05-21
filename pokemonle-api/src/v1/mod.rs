@@ -47,5 +47,5 @@ pub fn routers() -> ApiRouter<AppState> {
         .merge(language::routers())
         .merge(location::routers())
         .nest("/moves", r#move::routers())
-        .nest("/pokemon-species", pokemon::routers())
+        .merge(pokemon::routers())
 }
