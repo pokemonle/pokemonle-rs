@@ -12,7 +12,7 @@ use super::{
 use crate::{
     localized_resource_handler,
     prelude::*,
-    types::{prelude::PaginatedResource, WithName},
+    types::{prelude::PaginatedResource, WithName, WithSlot},
 };
 
 localized_resource_handler!(
@@ -73,9 +73,9 @@ impl DatabaseClient {
         page: u64,
         limit: u64,
         lang: i32,
-    ) -> Result<PaginatedResource<WithName<abilities::Model>>> {
+    ) -> Result<PaginatedResource<WithSlot<WithName<abilities::Model>>>> {
         let paginator = Abilities::find()
-            .inner_join(PokemonAbilities)
+            .find_also_related(PokemonAbilities)
             .find_also_related(AbilityNames)
             .filter(pokemon_abilities::Column::PokemonId.eq(pokemon_id))
             .filter(ability_names::Column::LocalLanguageId.eq(lang))
@@ -88,13 +88,17 @@ impl DatabaseClient {
         Ok(PaginatedResource {
             data: data
                 .into_iter()
-                .map(|(p, n)| WithName {
-                    name: if let Some(n) = n {
-                        n.name
-                    } else {
-                        p.identifier.clone()
+                .filter_map(|(a, pa, an)| match (pa, an) {
+                    (Some(pa), Some(an)) => Some((a, pa, an)),
+                    _ => None,
+                })
+                .map(|(a, pa, an)| WithSlot {
+                    item: WithName {
+                        item: a,
+                        name: an.name,
                     },
-                    item: p,
+                    slot: pa.slot,
+                    is_hidden: pa.is_hidden,
                 })
                 .collect(),
             page,

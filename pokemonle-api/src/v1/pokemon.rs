@@ -3,10 +3,10 @@ use aide::axum::{routing::get_with, ApiRouter, IntoApiResponse};
 use axum::extract::{Path, Query, State};
 use pokemonle_lib::{
     database::{
-        entity::{abilities, pokemon_colors, pokemon_habitats, pokemon_shapes, prelude::*},
+        entity::{abilities, prelude::*},
         r#trait::LocalizedResourceHandler,
     },
-    types::prelude::*,
+    types::{prelude::*, WithSlot},
 };
 
 use super::{
@@ -65,27 +65,21 @@ pub fn routers() -> ApiRouter<AppState> {
             Pokemon::routers_with(|op| op.tag("pokemon")).api_route(
                 "/{id}/abilities",
                 get_with(get_pokemon_abilities, |op| {
-                    response_with::<PaginatedResource<WithName<abilities::Model>>>(op)
+                    response_with::<PaginatedResource<WithSlot<WithName<abilities::Model>>>>(op)
                         .tag("pokemon")
                 }),
             ),
         )
         .nest(
             "/pokemon-colors",
-            PokemonColors::routers_with(|op| {
-                response_with::<PaginatedResource<pokemon_colors::Model>>(op).tag("pokemon")
-            }),
+            PokemonColors::routers_with(|op| op.tag("pokemon")),
         )
         .nest(
             "/pokemon-shapes",
-            PokemonShapes::routers_with(|op| {
-                response_with::<PaginatedResource<pokemon_shapes::Model>>(op).tag("pokemon")
-            }),
+            PokemonShapes::routers_with(|op| op.tag("pokemon")),
         )
         .nest(
             "/pokemon-habitats",
-            PokemonHabitats::routers_with(|op| {
-                response_with::<PaginatedResource<pokemon_habitats::Model>>(op).tag("pokemon")
-            }),
+            PokemonHabitats::routers_with(|op| op.tag("pokemon")),
         )
 }

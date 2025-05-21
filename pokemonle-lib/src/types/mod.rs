@@ -15,3 +15,8 @@ impl<T> WithName<T> {
         Self::new(tuple.0, tuple.1)
     }
 }
+
+define_extra_struct!(WithSlot {
+    slot: i32,
+    is_hidden: bool
+});
