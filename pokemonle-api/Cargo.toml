@@ -3,6 +3,7 @@ name = "pokemonle-api"
 version = "0.1.0"
 edition = "2021"
 license = "Apache-2.0"
+build = "build.rs"
 
 [dependencies]
 pokemonle-lib = { path = "../pokemonle-lib" }
@@ -11,8 +12,13 @@ tokio = { version = "1", features = ["full"] }
 axum = "^0.8"
 aide.workspace = true
 serde.workspace = true
+serde_json.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
 tower-http = { version = "^0.6", features = ["trace", "cors"] }
 thiserror.workspace = true
 schemars.workspace = true
+vergen.workspace = true
+
+[build-dependencies]
+vergen.workspace = true

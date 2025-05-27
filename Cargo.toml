@@ -13,6 +13,10 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 thiserror = "2.0"
 schemars = { version = "0.8", features = ["derive"] }
+vergen = { package = "vergen-git2", version = "1.0", features = [
+    "build",
+    "rustc",
+] }
 [workspace.dependencies.aide]
 version = "^0.14"
 features = ["axum", "axum-json", "axum-query", "scalar", "macros"]

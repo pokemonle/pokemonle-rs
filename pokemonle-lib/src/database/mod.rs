@@ -76,7 +76,7 @@ where
     ) -> Result<PaginatedResource<T::Model>> {
         let paginator = T::find().paginate(&self.conn, limit);
 
-        let data = paginator.fetch_page(page).await?;
+        let data = paginator.fetch_page(page - 1).await?;
 
         let total = paginator.num_items_and_pages().await?;
 
